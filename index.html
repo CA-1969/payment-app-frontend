@@ -20,11 +20,22 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45); /* Tailwind's blue-500 with opacity */
         }
+        .tour-destination-image {
+            width: 120px; /* Increased image size */
+            height: 120px;
+            border-radius: 8px; /* Rounded corners */
+            object-fit: cover;
+            display: none; /* Hidden by default */
+            margin-left: 1.5rem; /* Increased spacing from input */
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+            border: 2px solid #cbd5e1; /* Light border */
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen flex items-center justify-center p-8">
 
-    <div class="w-full max-w-4xl">
+    <div class="w-full max-w-5xl">
         <!-- Header Card -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
             <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-xl">
@@ -32,6 +43,9 @@
                 <p class="text-blue-100 text-center mt-2 text-md">v14.0 - Traveler & Vendor Payments</p>
             </div>
         </div>
+
+        <!-- Static Company Name -->
+        <p class="text-center text-gray-600 text-sm mb-4 font-bold">Property: Anurag Maheshwari and Company</p>
 
         <!-- Main Form Card -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
@@ -52,55 +66,99 @@
                             </div>
 
                             <div class="space-y-4">
-                                <!-- Company Field (Always present) -->
-                                <div class="space-y-2">
-                                    <label for="company" class="text-sm font-medium leading-none">Company</label>
-                                    <input type="text" id="company" name="company" value="Anurag Maheshwari and Company" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                </div>
-
                                 <!-- Traveler Fields -->
                                 <div id="travelerFields" class="space-y-4">
                                     <div class="space-y-2">
                                         <label for="tourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
-                                        <input type="text" id="tourId" name="tourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <div class="flex items-center">
+                                            <input type="text" id="tourId" name="tourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <img id="tourDestinationImage" class="tour-destination-image" alt="Destination Image">
+                                        </div>
                                     </div>
+                                    
+                                    <!-- Payment Status Dropdown for Traveler -->
                                     <div class="space-y-2">
+                                        <label for="paymentStatusTraveler" class="text-sm font-medium leading-none">Payment Status <span class="text-red-500">*</span></label>
+                                        <select id="paymentStatusTraveler" name="paymentStatusTraveler" required class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <option value="advance">Advance</option>
+                                            <option value="partial">Partial</option>
+                                            <option value="full">Full</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- Is Group Tour? -->
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium leading-none">Is Group Tour?</label>
+                                        <div class="flex space-x-4" id="isGroupTourRadioGroup">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" id="groupNo" name="isGroupTour" value="no" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                                <label for="groupNo" class="text-base font-medium text-gray-700">No</label>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" id="groupYes" name="isGroupTour" value="yes" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                <label for="groupYes" class="text-base font-medium text-gray-700">Yes</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2" id="singleTravelerNameField">
                                         <label for="travelerOrGroupName" class="text-sm font-medium leading-none">Traveler/Group Name <span class="text-red-500">*</span></label>
                                         <input type="text" id="travelerOrGroupName" name="travelerOrGroupName" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     </div>
+                                    
+                                    <div class="space-y-2" id="singleTravelerAmountField">
+                                        <label for="totalAmount" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
+                                        <input type="number" id="totalAmount" name="totalAmount" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+
                                     <div class="space-y-2">
                                         <label for="entryDate" class="text-sm font-medium leading-none">Entry Date</label>
                                         <input type="date" id="entryDate" name="entryDate" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     </div>
-                                    <div class="space-y-2">
-                                        <label for="totalAmount" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
-                                        <input type="number" id="totalAmount" name="totalAmount" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    
+                                    <!-- Group Tour Details - Dynamically generated -->
+                                    <div id="groupTourDetails" class="space-y-6 hidden mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <h3 class="text-lg font-semibold text-gray-800">Group Tour Details (Up to 20 Members)</h3>
+                                        <div id="groupMembersContainer" class="space-y-4">
+                                            <!-- Group member rows will be appended here by JavaScript -->
+                                        </div>
+                                        <button type="button" id="addMemberButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
+                                            Add Member
+                                        </button>
+                                        <p id="memberLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 members can be added.</p>
                                     </div>
                                 </div>
 
                                 <!-- Vendor Fields -->
                                 <div id="vendorFields" class="space-y-4 hidden">
                                     <div class="space-y-2">
-                                        <label for="vendorName" class="text-sm font-medium leading-none">Vendor Name <span class="text-red-500">*</span></label>
-                                        <input type="text" id="vendorName" name="vendorName" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <label for="vendorTourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
+                                        <input type="text" id="vendorTourId" name="vendorTourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     </div>
-                                    <div class="space-y-2">
-                                        <label for="amount" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
-                                        <input type="number" id="amount" name="amount" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+
+                                    <div id="vendorServicesContainer" class="space-y-6 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <h3 class="text-lg font-semibold text-gray-800">Vendor Services (Up to 20 Services)</h3>
+                                        <!-- Vendor service rows will be appended here by JavaScript -->
                                     </div>
+                                    <button type="button" id="addVendorServiceButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
+                                        Add Service
+                                    </button>
+                                    <p id="vendorServiceLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 services can be added.</p>
+
+                                    <!-- Other Details Field (Common for Vendor Form) -->
                                     <div class="space-y-2">
-                                        <label for="serviceType" class="text-sm font-medium leading-none">Service Type <span class="text-red-500">*</span></label>
-                                        <input type="text" id="serviceType" name="serviceType" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <label for="vendorOtherDetails" class="text-sm font-medium leading-none">Other Details</label>
+                                        <input type="text" id="vendorOtherDetails" name="vendorOtherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="space-y-6">
-                            <!-- Payment Mode Select -->
+                        <!-- Right Column - Common Payment Details (Now only for Traveler Form) -->
+                        <div class="space-y-6" id="commonPaymentDetailsColumn">
                             <div class="space-y-2">
                                 <label for="paymentMode" class="text-sm font-medium leading-none">Payment Mode</label>
-                                <select id="paymentMode" name="paymentMode" class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                <select id="paymentMode" name="paymentMode" class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     <option value="cash">Cash</option>
                                     <option value="bank_transfer">Bank Transfer</option>
                                     <option value="cheque">Cheque</option>
@@ -109,7 +167,6 @@
                                 </select>
                             </div>
 
-                            <!-- Conditional Payment Details Fields -->
                             <div id="paymentDetailsFields" class="space-y-4">
                                 <div class="space-y-2">
                                     <label for="paymentType" class="text-sm font-medium leading-none">Payment Type</label>
@@ -121,7 +178,6 @@
                                 </div>
                             </div>
 
-                            <!-- Other Details Field -->
                             <div class="space-y-2">
                                 <label for="otherDetails" class="text-sm font-medium leading-none">Other Details</label>
                                 <input type="text" id="otherDetails" name="otherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
@@ -148,57 +204,433 @@
         const formTypeRadioGroup = document.getElementById('formTypeRadioGroup');
         const travelerFields = document.getElementById('travelerFields');
         const vendorFields = document.getElementById('vendorFields');
-        const paymentModeSelect = document.getElementById('paymentMode');
-        const paymentDetailsFields = document.getElementById('paymentDetailsFields');
         const submitButton = document.getElementById('submitButton');
         const submitResultMessage = document.getElementById('submitResultMessage');
+        const commonPaymentDetailsColumn = document.getElementById('commonPaymentDetailsColumn'); // Added for hiding common details
+
+        // Elements for Traveler Form (Group Tour)
+        const tourIdInput = document.getElementById('tourId');
+        const tourDestinationImage = document.getElementById('tourDestinationImage');
+        const paymentStatusTravelerSelect = document.getElementById('paymentStatusTraveler'); // New Traveler Payment Status
+        const isGroupTourRadioGroup = document.getElementById('isGroupTourRadioGroup');
+        const groupTourDetails = document.getElementById('groupTourDetails');
+        const singleTravelerNameField = document.getElementById('singleTravelerNameField');
+        const singleTravelerAmountField = document.getElementById('singleTravelerAmountField');
+        const groupMembersContainer = document.getElementById('groupMembersContainer');
+        const addMemberButton = document.getElementById('addMemberButton');
+        const memberLimitMessage = document.getElementById('memberLimitMessage');
+        const paymentModeSelectTraveler = document.getElementById('paymentMode'); // Renamed for clarity in JS
+        const paymentTypeInputTraveler = document.getElementById('paymentType'); // Renamed for clarity in JS
+        const bankNameInputTraveler = document.getElementById('bankName'); // Renamed for clarity in JS
+        const otherDetailsInputTraveler = document.getElementById('otherDetails'); // Renamed for clarity in JS
+        const paymentDetailsFieldsTraveler = document.getElementById('paymentDetailsFields'); // Renamed for clarity in JS
+
+
+        // Elements for Vendor Form (Dynamic Services)
+        const vendorTourIdInput = document.getElementById('vendorTourId');
+        const vendorServicesContainer = document.getElementById('vendorServicesContainer');
+        const addVendorServiceButton = document.getElementById('addVendorServiceButton');
+        const vendorServiceLimitMessage = document.getElementById('vendorServiceLimitMessage');
+        const vendorOtherDetailsInput = document.getElementById('vendorOtherDetails');
+
+
+        const MAX_GROUP_MEMBERS = 20; // Increased limit to 20 for Traveler Group Tour
+        let currentMemberCount = 0; // Tracks dynamically added members for Traveler Group Tour
+
+        const MAX_VENDOR_SERVICES = 20; // Limit for Vendor Services
+        let currentVendorServiceCount = 0; // Tracks dynamically added vendor services
 
         let currentFormType = 'traveler'; // Initial form type
+        let isGroupTour = 'no'; // Initial group tour state
 
-        // Function to update field visibility based on form type
+        // --- Destination Image Mapping for Traveler Form ---
+        const destinationImages = {
+            'goa': 'https://placehold.co/120x120/20a8d8/ffffff?text=Goa+Beaches+%E2%9C%A8',
+            'paris': 'https://placehold.co/120x120/8d002f/ffffff?text=Eiffel+Night+%F0%9F%8C%9F',
+            'london': 'https://placehold.co/120x120/4e4c4f/ffffff?text=London+Bridge+%F0%9F%8C%86',
+            'mountains': 'https://placehold.co/120x120/4CAF50/ffffff?text=Alpine+Peaks+%F0%9F%8F%94',
+            'beach': 'https://placehold.co/120x120/f39c12/ffffff?text=Tropical+Beach+%F0%9F%8C%9E',
+            'city': 'https://placehold.co/120x120/34495e/ffffff?text=Metropolis+%F0%9F%8C%88',
+            'desert': 'https://placehold.co/120x120/e67e22/ffffff?text=Desert+Dunes+%F0%9F%8C%9B',
+            'temple': 'https://placehold.co/120x120/880e4f/ffffff?text=Ancient+Temple+%F0%9F%8F%9B',
+            'river': 'https://placehold.co/120x120/2196f3/ffffff?text=Serene+River+%F0%9F%9A%A2',
+            'historical': 'https://placehold.co/120x120/607d8b/ffffff?text=Historic+Ruins+%F0%9F%8C%87',
+            'island': 'https://placehold.co/120x120/008080/ffffff?text=Island+Paradise+%F0%9F%8C%B4',
+            'forest': 'https://placehold.co/120x120/228B22/ffffff?text=Deep+Forest+%F0%9F%8C%B3',
+            'cruise': 'https://placehold.co/120x120/000080/ffffff?text=Ocean+Cruise+%F0%9F%9B%A2'
+        };
+
+        function updateTourDestinationImage() {
+            const tourIdValue = tourIdInput.value.toLowerCase();
+            let matched = false;
+            for (const keyword in destinationImages) {
+                if (tourIdValue.includes(keyword)) {
+                    tourDestinationImage.src = destinationImages[keyword];
+                    tourDestinationImage.style.display = 'block';
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                tourDestinationImage.style.display = 'none';
+                tourDestinationImage.src = ''; // Clear image source
+            }
+        }
+        tourIdInput.addEventListener('input', updateTourDestinationImage);
+        // --- End Destination Image Mapping ---
+
+
+        // --- Traveler Group Member Functions ---
+        function createGroupMemberRow(memberIndex) {
+            const memberDiv = document.createElement('div');
+            memberDiv.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-4', 'gap-4', 'items-end', 'pb-4');
+            if (memberIndex < MAX_GROUP_MEMBERS) { 
+                memberDiv.classList.add('border-b');
+            }
+
+            const nameId = `groupName${memberIndex}`;
+            const amountId = `groupAmount${memberIndex}`;
+            const dateId = `groupDate${memberIndex}`;
+            const bankId = `groupBank${memberIndex}`;
+
+            memberDiv.innerHTML = `
+                <div class="space-y-2">
+                    <label for="${nameId}" class="text-sm font-medium leading-none">Name ${memberIndex} ${memberIndex === 1 ? '<span class="text-red-500">*</span>' : ''}</label>
+                    <input type="text" id="${nameId}" name="${nameId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+                <div class="space-y-2">
+                    <label for="${amountId}" class="text-sm font-medium leading-none">Amount (₹) ${memberIndex === 1 ? '<span class="text-red-500">*</span>' : ''}</label>
+                    <input type="number" id="${amountId}" name="${amountId}" step="0.01" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+                <div class="space-y-2">
+                    <label for="${dateId}" class="text-sm font-medium leading-none">Date</label>
+                    <input type="date" id="${dateId}" name="${dateId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+                <div class="space-y-2">
+                    <label for="${bankId}" class="text-sm font-medium leading-none">Bank</label>
+                    <input type="text" id="${bankId}" name="${bankId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                </div>
+            `;
+            return memberDiv;
+        }
+
+        function addMemberRow() {
+            if (currentMemberCount < MAX_GROUP_MEMBERS) {
+                currentMemberCount++;
+                const newRow = createGroupMemberRow(currentMemberCount);
+                groupMembersContainer.appendChild(newRow);
+                attachGroupMemberListeners(currentMemberCount); // Attach listeners to new row
+                document.getElementById(`groupDate${currentMemberCount}`).value = new Date().toISOString().split('T')[0];
+                
+                if (currentMemberCount >= MAX_GROUP_MEMBERS) {
+                    addMemberButton.classList.add('hidden');
+                    memberLimitMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        function clearGroupMembers() {
+            groupMembersContainer.innerHTML = '';
+            currentMemberCount = 0;
+            addMemberButton.classList.remove('hidden');
+            memberLimitMessage.classList.add('hidden');
+        }
+
+        function attachGroupMemberListeners(index) {
+            const groupNameInput = document.getElementById(`groupName${index}`);
+            const groupAmountInput = document.getElementById(`groupAmount${index}`);
+
+            if (groupNameInput && groupAmountInput) {
+                groupNameInput.addEventListener('input', () => {
+                    if (groupNameInput.value.trim() !== '') {
+                        groupAmountInput.setAttribute('required', 'true');
+                    } else {
+                        groupAmountInput.removeAttribute('required');
+                    }
+                });
+                groupAmountInput.addEventListener('input', () => {
+                    if (groupAmountInput.value.trim() !== '') {
+                        groupNameInput.setAttribute('required', 'true');
+                    } else {
+                        groupNameInput.removeAttribute('required');
+                    }
+                });
+            }
+        }
+        addMemberButton.addEventListener('click', addMemberRow);
+        // --- End Traveler Group Member Functions ---
+
+
+        // --- Vendor Service Functions ---
+        function createVendorServiceRow(serviceIndex) {
+            const serviceDiv = document.createElement('div');
+            serviceDiv.classList.add('space-y-4', 'pb-4', 'border-b', 'border-gray-300', 'last:border-b-0', 'mb-4');
+
+            const serviceTypeSelectId = `serviceType${serviceIndex}`;
+            const vendorNameId = `vendorName${serviceIndex}`;
+            const serviceDateId = `serviceDate${serviceIndex}`;
+            const serviceAmountId = `serviceAmount${serviceIndex}`;
+            const paymentMethodId = `paymentMethod${serviceIndex}`;
+            const bankTxnDetailsId = `bankTxnDetails${serviceIndex}`;
+            const removeButtonId = `removeService${serviceIndex}`;
+
+            serviceDiv.innerHTML = `
+                <h4 class="text-md font-semibold text-gray-700">Service ${serviceIndex}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                    <div class="space-y-2">
+                        <label for="${serviceTypeSelectId}" class="text-sm font-medium leading-none">Service Type <span class="text-red-500">*</span></label>
+                        <select id="${serviceTypeSelectId}" name="${serviceTypeSelectId}" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                            <option value="">Select Service Type</option>
+                            <option value="air-service">Air Service</option>
+                            <option value="hotel-accommodation">Hotel / Accommodation</option>
+                            <option value="visa">VISA</option>
+                            <option value="transportation">Transportation</option>
+                            <option value="other-custom">Other Custom Services</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="${vendorNameId}" class="text-sm font-medium leading-none">Vendor Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="${vendorNameId}" name="${vendorNameId}" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="${serviceDateId}" class="text-sm font-medium leading-none">Date</label>
+                        <input type="date" id="${serviceDateId}" name="${serviceDateId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="${serviceAmountId}" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
+                        <input type="number" id="${serviceAmountId}" name="${serviceAmountId}" step="0.01" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="${paymentMethodId}" class="text-sm font-medium leading-none">Payment Method</label>
+                        <select id="${paymentMethodId}" name="${paymentMethodId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                            <option value="">Select Method</option>
+                            <option value="cash">Cash</option>
+                            <option value="bank-transfer">Bank Transfer</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="upi">UPI</option>
+                            <option value="credit-card">Credit Card</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="${bankTxnDetailsId}" class="text-sm font-medium leading-none">Bank / Txn Details</label>
+                        <input type="text" id="${bankTxnDetailsId}" name="${bankTxnDetailsId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="e.g. HDFC Bank, UPI ID, Txn ID">
+                    </div>
+                </div>
+                <button type="button" id="${removeButtonId}" class="text-red-600 hover:text-red-800 text-sm font-medium mt-2">Remove Service</button>
+            `;
+            serviceDiv.dataset.serviceIndex = serviceIndex; // Store index for easy removal
+
+            // Attach remove listener
+            const removeBtn = serviceDiv.querySelector(`#${removeButtonId}`);
+            removeBtn.addEventListener('click', () => removeVendorServiceRow(serviceDiv));
+
+            // Attach dynamic required listeners
+            attachVendorServiceListeners(serviceTypeSelectId, vendorNameId, serviceAmountId);
+
+            return serviceDiv;
+        }
+
+        function addVendorServiceRow() {
+            if (currentVendorServiceCount < MAX_VENDOR_SERVICES) {
+                currentVendorServiceCount++;
+                const newRow = createVendorServiceRow(currentVendorServiceCount);
+                vendorServicesContainer.appendChild(newRow);
+                document.getElementById(`serviceDate${currentVendorServiceCount}`).value = new Date().toISOString().split('T')[0]; // Set default date
+                
+                if (currentVendorServiceCount >= MAX_VENDOR_SERVICES) {
+                    addVendorServiceButton.classList.add('hidden');
+                    vendorServiceLimitMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        function removeVendorServiceRow(rowElement) {
+            vendorServicesContainer.removeChild(rowElement);
+            // We need to re-evaluate the currentVendorServiceCount based on actual elements
+            // after removal, as direct decrementing might not be accurate if non-last elements are removed.
+            const remainingServices = vendorServicesContainer.querySelectorAll('.space-y-4.pb-4');
+            currentVendorServiceCount = remainingServices.length;
+           
+            // If the last service was removed and the count is 0, add a default one back
+            if (currentVendorServiceCount === 0 && currentFormType === 'vendor') {
+                addVendorServiceRow();
+            }
+
+            // Update add button visibility
+            addVendorServiceButton.classList.remove('hidden');
+            vendorServiceLimitMessage.classList.add('hidden');
+        }
+
+        function clearVendorServices() {
+            vendorServicesContainer.innerHTML = '';
+            currentVendorServiceCount = 0;
+            addVendorServiceButton.classList.remove('hidden');
+            vendorServiceLimitMessage.classList.add('hidden');
+        }
+
+        function attachVendorServiceListeners(serviceTypeSelectId, vendorNameId, serviceAmountId) {
+            const serviceTypeSelect = document.getElementById(serviceTypeSelectId);
+            const vendorNameInput = document.getElementById(vendorNameId);
+            const serviceAmountInput = document.getElementById(serviceAmountId);
+
+            // Make Vendor Name and Amount required if Service Type is selected
+            if (serviceTypeSelect) {
+                serviceTypeSelect.addEventListener('change', () => {
+                    if (serviceTypeSelect.value.trim() !== '') {
+                        vendorNameInput.setAttribute('required', 'true');
+                        serviceAmountInput.setAttribute('required', 'true');
+                    } else {
+                        vendorNameInput.removeAttribute('required');
+                        serviceAmountInput.removeAttribute('required');
+                    }
+                });
+            }
+
+            // Add mutual required logic for Vendor Name and Amount
+            if (vendorNameInput && serviceAmountInput) {
+                vendorNameInput.addEventListener('input', () => {
+                    if (vendorNameInput.value.trim() !== '') {
+                        serviceAmountInput.setAttribute('required', 'true');
+                        if (serviceTypeSelect.value.trim() === '') { // If type isn't set, also suggest it
+                            serviceTypeSelect.setAttribute('required', 'true');
+                        }
+                    } else {
+                        serviceAmountInput.removeAttribute('required');
+                        if (serviceTypeSelect.value.trim() === '') {
+                             serviceTypeSelect.removeAttribute('required');
+                        }
+                    }
+                });
+                serviceAmountInput.addEventListener('input', () => {
+                    if (serviceAmountInput.value.trim() !== '') {
+                        vendorNameInput.setAttribute('required', 'true');
+                        if (serviceTypeSelect.value.trim() === '') {
+                            serviceTypeSelect.setAttribute('required', 'true');
+                        }
+                    } else {
+                        vendorNameInput.removeAttribute('required');
+                        if (serviceTypeSelect.value.trim() === '') {
+                            serviceTypeSelect.removeAttribute('required');
+                        }
+                    }
+                });
+            }
+        }
+        addVendorServiceButton.addEventListener('click', addVendorServiceRow);
+        // --- End Vendor Service Functions ---
+
+
+        // --- Global Visibility and Event Listeners ---
         function updateFormVisibility() {
             if (currentFormType === 'traveler') {
                 travelerFields.classList.remove('hidden');
                 vendorFields.classList.add('hidden');
-                // Set vendor specific fields as not required
-                document.getElementById('vendorName').removeAttribute('required');
-                document.getElementById('amount').removeAttribute('required');
-                document.getElementById('serviceType').removeAttribute('required');
+                commonPaymentDetailsColumn.classList.remove('hidden'); // Show common fields for traveler
+
                 // Set traveler specific fields as required
                 document.getElementById('tourId').setAttribute('required', 'true');
                 document.getElementById('travelerOrGroupName').setAttribute('required', 'true');
                 document.getElementById('totalAmount').setAttribute('required', 'true');
-            } else {
+                paymentStatusTravelerSelect.setAttribute('required', 'true'); // Payment Status required for traveler
+                
+                // Remove vendor specific requirements
+                vendorTourIdInput.removeAttribute('required');
+                clearVendorServices(); // Clear and hide vendor service rows
+                
+                updateGroupTourVisibility(); // Also update group tour fields when switching to traveler
+            } else { // Vendor Form
                 travelerFields.classList.add('hidden');
                 vendorFields.classList.remove('hidden');
-                // Set traveler specific fields as not required
+                commonPaymentDetailsColumn.classList.add('hidden'); // Hide common fields for vendor
+
+                // Set vendor specific fields as required
+                vendorTourIdInput.setAttribute('required', 'true');
+                
+                // Remove traveler specific requirements
                 document.getElementById('tourId').removeAttribute('required');
+                paymentStatusTravelerSelect.removeAttribute('required'); // Payment Status not required for vendor
                 document.getElementById('travelerOrGroupName').removeAttribute('required');
                 document.getElementById('totalAmount').removeAttribute('required');
-                // Set vendor specific fields as required
-                document.getElementById('vendorName').setAttribute('required', 'true');
-                document.getElementById('amount').setAttribute('required', 'true');
-                document.getElementById('serviceType').setAttribute('required', 'true');
+                clearGroupMembers(); // Clear and hide group tour fields
+                isGroupTour = 'no'; // Reset the flag
+                document.getElementById('groupNo').checked = true; // Visually reset radio button
+
+                // Ensure at least one vendor service row exists when switching to vendor
+                if (currentVendorServiceCount === 0) {
+                    addVendorServiceRow();
+                }
             }
 
             // Always set entryDate for traveler form to today's date initially if it's traveler and empty
-            if (currentFormType === 'traveler' && document.getElementById('entryDate').value === '') {
-                 document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+            const entryDateInput = document.getElementById('entryDate');
+            if (currentFormType === 'traveler' && entryDateInput.value === '') {
+                 entryDateInput.value = new Date().toISOString().split('T')[0];
             }
         }
 
-        // Function to update payment details visibility based on payment mode
-        function updatePaymentDetailsVisibility() {
-            if (paymentModeSelect.value === 'cash') {
-                paymentDetailsFields.classList.add('hidden');
-                document.getElementById('paymentType').removeAttribute('required');
-                document.getElementById('bankName').removeAttribute('required');
+        // Function to update payment details visibility based on payment mode (for Traveler only)
+        // This function is still needed as paymentTypeInputTraveler and bankNameInputTraveler are dependent on paymentModeSelectTraveler
+        paymentModeSelectTraveler.addEventListener('change', () => {
+            if (paymentModeSelectTraveler.value === 'cash') {
+                paymentDetailsFieldsTraveler.classList.add('hidden');
+                paymentTypeInputTraveler.removeAttribute('required');
+                bankNameInputTraveler.removeAttribute('required');
             } else {
-                paymentDetailsFields.classList.remove('hidden');
-                // These fields are not strictly required in your original React code,
-                // but you might want to add 'required' here if needed.
-                // document.getElementById('paymentType').setAttribute('required', 'true');
-                // document.getElementById('bankName').setAttribute('required', 'true');
+                paymentDetailsFieldsTraveler.classList.remove('hidden');
+                // You might want to make these required based on your business logic
+                // paymentTypeInputTraveler.setAttribute('required', 'true');
+                // bankNameInputTraveler.setAttribute('required', 'true');
+            }
+        });
+
+
+        // Function to update group tour fields visibility and required attributes
+        function updateGroupTourVisibility() {
+            if (currentFormType === 'traveler') {
+                if (isGroupTour === 'yes') {
+                    groupTourDetails.classList.remove('hidden');
+                    singleTravelerNameField.classList.add('hidden');
+                    singleTravelerAmountField.classList.add('hidden');
+
+                    document.getElementById('travelerOrGroupName').removeAttribute('required');
+                    document.getElementById('totalAmount').removeAttribute('required');
+
+                    // Ensure at least one member row exists if "Yes" is selected
+                    if (currentMemberCount === 0) {
+                        addMemberRow(); // Add the first row
+                    } else {
+                        // Re-apply required to the first visible row if it exists
+                        const firstGroupName = document.getElementById(`groupName1`);
+                        const firstGroupAmount = document.getElementById(`groupAmount1`);
+                        if (firstGroupName && firstGroupName.value.trim() !== '') {
+                            firstGroupAmount.setAttribute('required', 'true');
+                        } else if (firstGroupAmount && firstGroupAmount.value.trim() !== '') {
+                            firstGroupName.setAttribute('required', 'true');
+                        } else {
+                            firstGroupName.setAttribute('required', 'true');
+                            firstGroupAmount.setAttribute('required', 'true');
+                        }
+                    }
+
+                } else {
+                    groupTourDetails.classList.add('hidden');
+                    singleTravelerNameField.classList.remove('hidden');
+                    singleTravelerAmountField.classList.remove('hidden');
+
+                    document.getElementById('travelerOrGroupName').setAttribute('required', 'true');
+                    document.getElementById('totalAmount').setAttribute('required', 'true');
+
+                    clearGroupMembers(); // Clear all dynamic group member fields
+                }
+            } else {
+                 groupTourDetails.classList.add('hidden');
+                 singleTravelerNameField.classList.remove('hidden');
+                 singleTravelerAmountField.classList.remove('hidden');
+                 // Ensure single traveler fields are not required if formType is vendor
+                 document.getElementById('travelerOrGroupName').removeAttribute('required');
+                 document.getElementById('totalAmount').removeAttribute('required');
+                 clearGroupMembers(); // Ensure group tour fields are cleared even if vendor selected
             }
         }
 
@@ -209,13 +641,14 @@
             updateFormVisibility();
         });
 
-        // Event listener for payment mode change
-        paymentModeSelect.addEventListener('change', () => {
-            console.log("Payment mode changed to:", paymentModeSelect.value);
-            updatePaymentDetailsVisibility();
+        // Event listener for Is Group Tour radio buttons
+        isGroupTourRadioGroup.addEventListener('change', (event) => {
+            isGroupTour = event.target.value;
+            console.log("Is Group Tour changed to:", isGroupTour);
+            updateGroupTourVisibility();
         });
 
-        // Simulated Backend Function (same as before)
+        // --- Simulated Backend Function ---
         const simulateBackendCall = async (payload) => {
             console.log("Simulating backend call...");
             return new Promise(resolve => {
@@ -241,27 +674,131 @@
             const formData = new FormData(paymentForm);
             const payload = {};
 
-            // Collect common fields
-            payload.company = formData.get('company');
-            payload.paymentMode = formData.get('paymentMode');
-            if (payload.paymentMode !== 'cash') {
-                payload.paymentType = formData.get('paymentType');
-                payload.bankName = formData.get('bankName');
-            }
-            payload.otherDetails = formData.get('otherDetails');
+            // Common fixed field
+            payload.company = "Anurag Maheshwari and Company";
 
-            // Collect form-type specific fields
+            // Form-type specific fields
             if (currentFormType === 'traveler') {
                 payload.type = 'traveler';
                 payload.tourId = formData.get('tourId');
-                payload.travelerOrGroupName = formData.get('travelerOrGroupName');
                 payload.entryDate = formData.get('entryDate');
-                payload.totalAmount = parseFloat(formData.get('totalAmount'));
-            } else {
+                payload.paymentStatus = formData.get('paymentStatusTraveler'); // New: Payment Status for Traveler
+                payload.paymentMode = formData.get('paymentMode'); // For traveler
+                payload.paymentType = formData.get('paymentType'); // For traveler
+                payload.bankName = formData.get('bankName'); // For traveler
+                payload.otherDetails = formData.get('otherDetails'); // For traveler
+
+
+                if (isGroupTour === 'yes') {
+                    payload.isGroupTour = true;
+                    payload.groupName = formData.get('travelerOrGroupName') || 'N/A';
+                    payload.groupMembers = [];
+                    let totalGroupAmount = 0;
+
+                    let atLeastOneMemberProvided = false;
+
+                    for (let i = 1; i <= currentMemberCount; i++) {
+                        const name = formData.get(`groupName${i}`);
+                        const amount = formData.get(`groupAmount${i}`);
+                        const date = formData.get(`groupDate${i}`);
+                        const bank = formData.get(`groupBank${i}`);
+
+                        if (name && amount && !isNaN(parseFloat(amount))) {
+                            const memberData = {
+                                name: name,
+                                amount: parseFloat(amount),
+                                date: date || '',
+                                bank: bank || ''
+                            };
+                            payload.groupMembers.push(memberData);
+                            totalGroupAmount += parseFloat(amount);
+                            atLeastOneMemberProvided = true;
+                        } else if (name || amount) {
+                             submitResultMessage.textContent = `Please provide both Name and a valid Amount for Member ${i}.`;
+                             submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                             submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                             submitButton.disabled = false;
+                             submitButton.textContent = 'Submit Payment';
+                             return;
+                        }
+                    }
+                    
+                    if (!atLeastOneMemberProvided && currentMemberCount > 0) {
+                        submitResultMessage.textContent = 'Please enter details for at least one group member.';
+                        submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                        submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Submit Payment';
+                        return;
+                    }
+                    
+                    payload.totalAmount = totalGroupAmount;
+                } else {
+                    payload.isGroupTour = false;
+                    payload.travelerOrGroupName = formData.get('travelerOrGroupName');
+                    payload.totalAmount = parseFloat(formData.get('totalAmount'));
+                }
+            } else { // Vendor form logic
                 payload.type = 'vendor';
-                payload.vendorName = formData.get('vendorName');
-                payload.amount = parseFloat(formData.get('amount'));
-                payload.serviceType = formData.get('serviceType');
+                payload.tourId = formData.get('vendorTourId'); // Vendor-specific Tour ID
+                payload.otherDetails = formData.get('vendorOtherDetails'); // Vendor-specific Other Details
+
+                payload.services = [];
+                let totalVendorAmount = 0;
+                let atLeastOneServiceProvided = false;
+
+                // Collect data from dynamically added vendor service rows
+                const serviceRows = vendorServicesContainer.querySelectorAll('.space-y-4.pb-4'); // Select based on class structure
+                if (serviceRows.length === 0) {
+                    submitResultMessage.textContent = 'Please add at least one vendor service.';
+                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                    submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Payment';
+                    return;
+                }
+
+                serviceRows.forEach((row, index) => {
+                    // Use querySelector to find elements within the specific row
+                    const serviceType = row.querySelector(`select[name="serviceType${index + 1}"]`).value;
+                    const vendorName = row.querySelector(`input[name="vendorName${index + 1}"]`).value;
+                    const date = row.querySelector(`input[name="serviceDate${index + 1}"]`).value;
+                    const amount = row.querySelector(`input[name="serviceAmount${index + 1}"]`).value;
+                    const paymentMethod = row.querySelector(`select[name="paymentMethod${index + 1}"]`).value; // Now a select
+                    const bankTxnDetails = row.querySelector(`input[name="bankTxnDetails${index + 1}"]`).value;
+
+                    if (serviceType && vendorName && amount && !isNaN(parseFloat(amount))) {
+                        const serviceData = {
+                            serviceType: serviceType,
+                            vendorName: vendorName,
+                            date: date || '',
+                            amount: parseFloat(amount),
+                            paymentMethod: paymentMethod || '',
+                            bankTxnDetails: bankTxnDetails || ''
+                        };
+                        payload.services.push(serviceData);
+                        totalVendorAmount += parseFloat(amount);
+                        atLeastOneServiceProvided = true;
+                    } else if (serviceType || vendorName || amount) {
+                        submitResultMessage.textContent = `Please ensure Service Type, Vendor Name, and Amount are filled correctly for Service ${index + 1}.`;
+                        submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                        submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Submit Payment';
+                        return;
+                    }
+                });
+
+                if (!atLeastOneServiceProvided && serviceRows.length > 0) {
+                     submitResultMessage.textContent = 'Please provide details for at least one service.';
+                     submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                     submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                     submitButton.disabled = false;
+                     submitButton.textContent = 'Submit Payment';
+                     return;
+                }
+                
+                payload.totalAmount = totalVendorAmount;
             }
 
             console.log("Payload to be sent:", payload);
@@ -278,23 +815,28 @@
                     submitResultMessage.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-300');
                     console.log("Form submission successful.");
 
-                    // Reset form fields based on type after success, similar to React code
+                    // Reset form fields after success
                     if (currentFormType === 'traveler') {
                         document.getElementById('tourId').value = '';
+                        tourDestinationImage.style.display = 'none';
+                        tourDestinationImage.src = '';
+                        paymentStatusTravelerSelect.value = 'advance'; // Reset traveler payment status
                         document.getElementById('travelerOrGroupName').value = '';
                         document.getElementById('totalAmount').value = '';
-                        document.getElementById('entryDate').value = new Date().toISOString().split('T')[0]; // Reset date to today
-                    } else {
-                        document.getElementById('vendorName').value = '';
-                        document.getElementById('amount').value = '';
-                        document.getElementById('serviceType').value = '';
+                        document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+                        document.getElementById('groupNo').checked = true;
+                        isGroupTour = 'no';
+                        updateGroupTourVisibility();
+                        document.getElementById('paymentMode').value = 'cash';
+                        document.getElementById('paymentType').value = '';
+                        document.getElementById('bankName').value = '';
+                        document.getElementById('otherDetails').value = '';
+                    } else { // Vendor form reset
+                        vendorTourIdInput.value = '';
+                        vendorOtherDetailsInput.value = '';
+                        clearVendorServices();
+                        addVendorServiceRow();
                     }
-                    document.getElementById('paymentType').value = '';
-                    document.getElementById('bankName').value = '';
-                    document.getElementById('otherDetails').value = '';
-                    document.getElementById('paymentMode').value = 'cash'; // Reset payment mode
-                    updatePaymentDetailsVisibility(); // Update visibility based on reset mode
-
                 } else {
                     submitResultMessage.textContent = result.error || 'Failed to save record';
                     submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
@@ -307,17 +849,16 @@
                 submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
                 submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
             } finally {
-                submitButton.disabled = false; // Re-enable button
-                submitButton.textContent = 'Submit Payment'; // Restore button text
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Payment';
                 console.log("Submission process finished.");
             }
         });
 
         // Initial setup on page load
         document.addEventListener('DOMContentLoaded', () => {
-            updateFormVisibility(); // Set initial form type visibility
-            updatePaymentDetailsVisibility(); // Set initial payment details visibility
-            document.getElementById('entryDate').value = new Date().toISOString().split('T')[0]; // Set default date
+            updateFormVisibility();
+            document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
         });
     </script>
 </body>
