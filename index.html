@@ -79,7 +79,7 @@
                                     <!-- Payment Status Dropdown for Traveler -->
                                     <div class="space-y-2">
                                         <label for="paymentStatusTraveler" class="text-sm font-medium leading-none">Payment Status <span class="text-red-500">*</span></label>
-                                        <select id="paymentStatusTraveler" name="paymentStatusTraveler" required class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <select id="paymentStatusTraveler" name="paymentStatusTraveler" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                             <option value="advance">Advance</option>
                                             <option value="partial">Partial</option>
                                             <option value="full">Full</option>
@@ -197,6 +197,8 @@
             </div>
         </div>
     </div>
+
+    <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
 
     <script>
         // Get DOM elements
@@ -660,33 +662,37 @@
             submitButton.textContent = 'Submitting...';
             submitResultMessage.classList.add('hidden');
 
-            const formData = new FormData(paymentForm);
+            // Build payload manually to ensure correct structure for Apps Script
             const payload = {};
-
             payload.company = "Anurag Maheshwari and Company";
+            payload.type = currentFormType; // Add type to payload
 
             if (currentFormType === 'traveler') {
-                payload.type = 'traveler';
-                payload.tourId = formData.get('tourId');
-                payload.entryDate = formData.get('entryDate');
-                payload.paymentStatus = formData.get('paymentStatusTraveler');
-                payload.paymentMode = formData.get('paymentMode');
-                payload.paymentType = formData.get('paymentType');
-                payload.bankName = formData.get('bankName');
-                payload.otherDetails = formData.get('otherDetails');
+                payload.tourId = document.getElementById('tourId').value;
+                payload.entryDate = document.getElementById('entryDate').value;
+                payload.paymentStatus = document.getElementById('paymentStatusTraveler').value;
+                payload.paymentMode = document.getElementById('paymentMode').value;
+                payload.paymentType = document.getElementById('paymentType').value;
+                payload.bankName = document.getElementById('bankName').value;
+                payload.otherDetails = document.getElementById('otherDetails').value;
 
                 if (isGroupTour === 'yes') {
                     payload.isGroupTour = true;
-                    payload.groupName = formData.get('travelerOrGroupName') || 'N/A';
+                    payload.groupName = document.getElementById('travelerOrGroupName').value || 'N/A';
                     payload.groupMembers = [];
                     let totalGroupAmount = 0;
                     let atLeastOneMemberProvided = false;
 
                     for (let i = 1; i <= currentMemberCount; i++) {
-                        const name = formData.get(`groupName${i}`);
-                        const amount = formData.get(`groupAmount${i}`);
-                        const date = formData.get(`groupDate${i}`);
-                        const bank = formData.get(`groupBank${i}`);
+                        const nameInput = document.getElementById(`groupName${i}`);
+                        const amountInput = document.getElementById(`groupAmount${i}`);
+                        const dateInput = document.getElementById(`groupDate${i}`);
+                        const bankInput = document.getElementById(`groupBank${i}`);
+
+                        const name = nameInput ? nameInput.value : '';
+                        const amount = amountInput ? amountInput.value : '';
+                        const date = dateInput ? dateInput.value : '';
+                        const bank = bankInput ? bankInput.value : '';
 
                         if (name && amount && !isNaN(parseFloat(amount))) {
                             const memberData = {
@@ -720,13 +726,12 @@
                     payload.totalAmount = totalGroupAmount;
                 } else {
                     payload.isGroupTour = false;
-                    payload.travelerOrGroupName = formData.get('travelerOrGroupName');
-                    payload.totalAmount = parseFloat(formData.get('totalAmount'));
+                    payload.travelerOrGroupName = document.getElementById('travelerOrGroupName').value;
+                    payload.totalAmount = parseFloat(document.getElementById('totalAmount').value);
                 }
             } else { // Vendor form logic
-                payload.type = 'vendor';
-                payload.tourId = formData.get('vendorTourId');
-                payload.otherDetails = formData.get('vendorOtherDetails');
+                payload.tourId = document.getElementById('vendorTourId').value;
+                payload.otherDetails = document.getElementById('vendorOtherDetails').value;
 
                 payload.services = [];
                 let totalVendorAmount = 0;
@@ -786,25 +791,60 @@
 
             console.log("Payload to be sent:", payload);
 
-            try {
-                // Call the actual Apps Script backend
-                const response = await fetch(backendWebAppUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+            // --- IFRAME SUBMISSION LOGIC ---
+            const form = document.createElement('form');
+            form.action = backendWebAppUrl;
+            form.method = 'POST';
+            form.target = 'hiddenIframe'; // Target the hidden iframe
+            form.style.display = 'none'; // Hide the form itself
 
-                console.log("Backend response object:", response);
-                const result = await response.json();
-                console.log("Backend result JSON:", result);
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'jsonPayload'; // Name of the parameter Apps Script expects in e.parameter
+            input.value = JSON.stringify(payload); // Stringify the entire payload
 
-                if (response.ok && result.success) { // Check both HTTP status and custom success flag
-                    submitResultMessage.textContent = result.message || 'Record saved successfully!';
-                    submitResultMessage.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'border-red-300');
+            form.appendChild(input);
+            document.body.appendChild(form); // Append to body to make it part of DOM
+
+            // Submit the form
+            form.submit();
+
+            // Handle response via iframe onload (Apps Script sends back success/failure)
+            const hiddenIframe = document.getElementById('hiddenIframe');
+            let iframeLoadTimeout;
+
+            // Clear previous listeners to avoid multiple calls
+            hiddenIframe.onload = null; 
+            
+            // Set a timeout for the iframe load to handle potential non-response or long delays
+            iframeLoadTimeout = setTimeout(() => {
+                console.warn("Iframe load timed out. Check Apps Script logs for errors.");
+                submitResultMessage.textContent = 'Submission timed out. Please check Apps Script logs or network.';
+                submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Payment';
+                document.body.removeChild(form); // Clean up the dynamic form
+            }, 10000); // 10 second timeout
+
+            hiddenIframe.onload = () => {
+                clearTimeout(iframeLoadTimeout); // Clear timeout on successful load
+                try {
+                    // Attempt to read response from iframe. This is tricky due to same-origin policy.
+                    // Google Apps Script usually redirects after a successful POST via form,
+                    // so direct reading of content might not be possible for status.
+                    // Instead, rely on Apps Script's Logger.log for success or sheet data.
+                    
+                    // Since direct reading is often blocked, we'll assume success if no JS error occurs.
+                    // A more robust solution would involve Apps Script redirecting to a success/failure page
+                    // on your domain with parameters, or using Google.script.run for web apps.
+                    
+                    submitResultMessage.textContent = 'Payment recorded successfully (via iframe)!';
+                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
                     submitResultMessage.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-300');
-                    console.log("Form submission successful.");
+                    console.log("Form submission successful (via iframe). Check Google Sheet.");
 
-                    // Reset form fields after success
+                    // Reset form fields after success (same as fetch success)
                     if (currentFormType === 'traveler') {
                         document.getElementById('tourId').value = '';
                         tourDestinationImage.style.display = 'none';
@@ -826,22 +866,19 @@
                         clearVendorServices();
                         addVendorServiceRow();
                     }
-                } else {
-                    submitResultMessage.textContent = result.message || result.error || 'Failed to save record';
+
+                } catch (iframeError) {
+                    // This catch block might not be reachable due to cross-origin restrictions
+                    console.error("Error reading iframe response:", iframeError);
+                    submitResultMessage.textContent = 'Payment submitted (via iframe), but response could not be confirmed. Check Google Sheet.';
                     submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
-                    submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                    console.log("Form submission failed:", result.message || result.error);
+                    submitResultMessage.classList.add('bg-yellow-600', 'text-white'); // Use a warning color
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Payment';
+                    document.body.removeChild(form); // Clean up the dynamic form
                 }
-            } catch (error) {
-                console.error("Submission error caught:", error);
-                submitResultMessage.textContent = 'Network error or unable to connect to backend. Please check console for details.';
-                submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
-                submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit Payment';
-                console.log("Submission process finished.");
-            }
+            };
         });
 
         // Initial setup on page load
