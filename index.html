@@ -649,9 +649,9 @@
         });
 
         // --- Backend URL ---
-        const backendWebAppUrl = 'https://script.google.com/macros/s/AKfycbyiDWk07Dsgy0li1LPW2_hx0gBobqS2HiS1sB_3vJbhp6W7gQpxNV_YTq4X-x0NGV3QrQ/exec';
+        const backendWebAppUrl = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
 
-        // Modified handleSubmit to use the real Apps Script URL
+        // Modified handleSubmit to use the real Apps Script backendWebAppUrl
         paymentForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             console.log("Form submission triggered.");
@@ -828,14 +828,14 @@
                     }
                 } else {
                     submitResultMessage.textContent = result.message || result.error || 'Failed to save record';
-                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
                     submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
                     console.log("Form submission failed:", result.message || result.error);
                 }
             } catch (error) {
                 console.error("Submission error caught:", error);
                 submitResultMessage.textContent = 'Network error or unable to connect to backend. Please check console for details.';
-                submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
+                submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
                 submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
             } finally {
                 submitButton.disabled = false;
