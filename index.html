@@ -46,7 +46,8 @@
 
         <!-- CA Logo and Static Company Name -->
         <div class="flex items-center justify-center gap-2 mb-4">
-            <img src="https://www.icai.org/new_logo.jpg" alt="ICAI CA Logo" class="h-8 w-8 rounded-full object-contain">
+            <!-- CA Logo: Updated to use the uploaded PNG file, with adjusted sizing -->
+            <img src="https://content.googleapis.com/v1/files/uploaded:CA_India_Logo.png-3730ebe2-8d07-4775-abbd-9e203964f871?alt=media" alt="CA INDIA Logo" class="max-h-12 max-w-24 object-contain border border-gray-300 rounded-lg">
             <p class="text-center text-gray-600 text-sm font-bold">Property: Anurag Maheshwari and Company</p>
         </div>
 
@@ -119,6 +120,18 @@
                                         <input type="date" id="entryDate" name="entryDate" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                     </div>
                                     
+                                    <!-- Other Details Field -->
+                                    <div class="space-y-2">
+                                        <label for="otherDetails" class="text-sm font-medium leading-none">Other Details</label>
+                                        <input type="text" id="otherDetails" name="otherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+
+                                    <!-- Receipt Number Field -->
+                                    <div class="space-y-2">
+                                        <label for="receiptNumber" class="text-sm font-medium leading-none">Receipt Number</label>
+                                        <input type="text" id="receiptNumber" name="receiptNumber" readonly class="flex h-10 w-full rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 cursor-not-allowed">
+                                    </div>
+                                    
                                     <!-- Group Tour Details - Dynamically generated -->
                                     <div id="groupTourDetails" class="space-y-6 hidden mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
                                         <h3 class="text-lg font-semibold text-gray-800">Group Tour Details (Up to 20 Members)</h3>
@@ -136,7 +149,9 @@
                                 <div id="vendorFields" class="space-y-4 hidden">
                                     <div class="space-y-2">
                                         <label for="vendorTourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
-                                        <input type="text" id="vendorTourId" name="vendorTourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <div class="flex items-center">
+                                            <input type="text" id="vendorTourId" name="vendorTourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        </div>
                                     </div>
 
                                     <div id="vendorServicesContainer" class="space-y-6 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -179,11 +194,6 @@
                                     <label for="bankName" class="text-sm font-medium leading-none">Bank Name</label>
                                     <input type="text" id="bankName" name="bankName" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                                 </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label for="otherDetails" class="text-sm font-medium leading-none">Other Details</label>
-                                <input type="text" id="otherDetails" name="otherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                             </div>
                         </div>
                     </div>
@@ -228,6 +238,7 @@
         const paymentTypeInputTraveler = document.getElementById('paymentType'); // Renamed for clarity in JS
         const bankNameInputTraveler = document.getElementById('bankName'); // Renamed for clarity in JS
         const otherDetailsInputTraveler = document.getElementById('otherDetails'); // Renamed for clarity in JS
+        const receiptNumberInput = document.getElementById('receiptNumber'); // New Receipt Number field
         const paymentDetailsFieldsTraveler = document.getElementById('paymentDetailsFields'); // Renamed for clarity in JS
 
 
@@ -272,6 +283,11 @@
                 if (tourIdValue.includes(keyword)) {
                     tourDestinationImage.src = destinationImages[keyword];
                     tourDestinationImage.style.display = 'block';
+                    // Fallback for PDF icon if the image fails to load
+                    tourDestinationImage.onerror = () => {
+                        tourDestinationImage.src = 'https://placehold.co/120x120/999999/ffffff?text=Image+Error';
+                        console.error("Failed to load image for tour ID:", tourIdValue);
+                    };
                     matched = true;
                     break;
                 }
@@ -283,6 +299,33 @@
         }
         tourIdInput.addEventListener('input', updateTourDestinationImage);
         // --- End Destination Image Mapping ---
+
+
+        // --- Receipt Number Counter ---
+        const RECEIPT_COUNTER_KEY = 'paymentAppReceiptCounter';
+        const STARTING_RECEIPT_NUMBER = 1001;
+
+        function getNextReceiptNumber() {
+            let lastReceiptNumber = parseInt(localStorage.getItem(RECEIPT_COUNTER_KEY) || STARTING_RECEIPT_NUMBER.toString(), 10);
+            if (isNaN(lastReceiptNumber)) { // Fallback if localStorage corrupted
+                lastReceiptNumber = STARTING_RECEIPT_NUMBER;
+            }
+            return lastReceiptNumber;
+        }
+
+        function incrementAndSaveReceiptNumber() {
+            let nextNumber = getNextReceiptNumber();
+            nextNumber++;
+            localStorage.setItem(RECEIPT_COUNTER_KEY, nextNumber.toString());
+            return nextNumber;
+        }
+
+        function updateReceiptNumberField() {
+            if (receiptNumberInput) {
+                receiptNumberInput.value = getNextReceiptNumber();
+            }
+        }
+        // --- End Receipt Number Counter ---
 
 
         // --- Traveler Group Member Functions ---
@@ -572,6 +615,7 @@
             if (currentFormType === 'traveler' && entryDateInput.value === '') {
                  entryDateInput.value = new Date().toISOString().split('T')[0];
             }
+            updateReceiptNumberField(); // Update receipt number visibility here too
         }
 
         // Function to update payment details visibility based on payment mode (for Traveler only)
@@ -680,6 +724,7 @@
                 payload.paymentType = document.getElementById('paymentType').value;
                 payload.bankName = document.getElementById('bankName').value;
                 payload.otherDetails = document.getElementById('otherDetails').value;
+                payload.receiptNumber = document.getElementById('receiptNumber').value; // Add receipt number to payload
 
                 if (isGroupTour === 'yes') {
                     payload.isGroupTour = true;
@@ -865,6 +910,11 @@
                         document.getElementById('paymentType').value = '';
                         document.getElementById('bankName').value = '';
                         document.getElementById('otherDetails').value = '';
+                        // Increment receipt number and update field after successful submission for traveler
+                        if (receiptNumberInput) { // Ensure element exists
+                            incrementAndSaveReceiptNumber();
+                            updateReceiptNumberField();
+                        }
                     } else { // Vendor form reset
                         vendorTourIdInput.value = '';
                         vendorOtherDetailsInput.value = '';
@@ -890,6 +940,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateFormVisibility();
             document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+            // Set initial receipt number when the page loads
+            updateReceiptNumberField(); 
         });
     </script>
 </body>
