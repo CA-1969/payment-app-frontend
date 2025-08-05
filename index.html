@@ -33,11 +33,11 @@
         .invoice-actions {
             position: absolute;
             top: 1.3rem;
-            right: 1.8rem;
+            right: 1.6rem;
             display: flex;
             flex-direction: column;
             gap: .65rem;
-            z-index: 20;
+            z-index: 11;
             min-width: 140px;
             align-items: flex-end;
         }
@@ -77,15 +77,13 @@
         }
         .floating-tourid {
             position: absolute;
-            top: 2.1rem;
-            right: 19.2rem;
-            z-index: 30;
+            top: 2.05rem;
+            right: 15.2rem;
+            z-index: 12;
             width:170px;
         }
         @media (max-width: 1000px) {
-          .floating-tourid {
-            right: 1rem;
-          }
+          .floating-tourid { right: 1rem; }
         }
         @media (max-width: 640px) {
             .floating-tourid, .invoice-actions {
@@ -98,79 +96,215 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-2">
-<div class="w-full max-w-5xl relative">
-<div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden relative pt-6 pb-2">
-    <!-- Header -->
-    <div class="p-6 pb-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-xl relative">
-        <h2 class="text-3xl font-extrabold text-center">Payment Management System</h2>
-        <p class="text-blue-100 text-center mt-2 text-md">v14.0 - Traveler &amp; Vendor Payments</p>
-        <!-- Floating Tour ID -->
-        <div class="floating-tourid flex flex-col items-end">
-            <label for="tourIdFloating" class="text-xs font-bold text-gray-100 mr-1 mb-1">Tour ID</label>
-            <input type="text" id="tourIdFloating" name="tourIdFloating"
-                class="block h-8 w-full rounded-md border border-blue-200 bg-white px-2 py-1 text-sm text-blue-900 focus:ring-blue-400 focus:border-blue-600"
-                placeholder="Tour ID"
-                oninput="copyTourIdToMain(this.value)">
-        </div>
-    </div>
-    <!-- CA Logo/company -->
-    <div class="flex items-center justify-center gap-2 mb-2 mt-2">
-        <img src="https://content.googleapis.com/v1/files/uploaded:CA_India_Logo.png-3730ebe2-d07-4775-abbd-9e203964f871?alt=media" alt="CA INDIA Logo" class="max-h-12 max-w-24 object-contain border border-gray-300 rounded-lg">
-        <p class="text-center text-gray-600 text-sm font-bold">Property: Anurag Maheshwari and Company</p>
-    </div>
-    <!-- Action buttons -->
-    <div class="invoice-actions">
-        <button
-            type="button"
-            class="invoice-btn"
-            onclick="window.open('invoice.html','_blank')"
-            title="Open the Invoice app (new tab)"
-        >Do you want to raise an Invoice also?</button>
-        <button
-            type="button"
-            class="show-invoice-btn"
-            onclick="showInvoiceForTour()"
-            title="Show invoice for entered Tour ID"
-        >Show Invoice for This Tour</button>
-    </div>
-    <!-- FORM START -->
-    <div class="p-6 pt-0">
-        <!-- --- PASTE-2.txt FORM CONTENT, UNEDITED, populated below --- -->
-        <form id="paymentForm" class="space-y-8">
-            <!-- (form fields as in your paste-2.txt, already provided previously) -->
-            <!-- ... TRIMMED HERE FOR BREVITY, BUT WILL BE FULL IN THE ACTUAL FILE ... -->
-            <!-- Paste all of your <form id="paymentForm"> ... </form> section here. For this answer, the structure/sample above suffices due to length. -->
-        </form>
-        <!-- --- END FORM --- -->
-    </div>
-</div>
-</div>
-<iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
-<script>
-    // TOUR ID TWO-WAY SYNC
+<body class="min-h-screen flex items-center justify-center p-8">
+    <div class="w-full max-w-5xl">
+        <!-- Main Card (with floating actions and floating tour id) -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden relative">
+            <!-- Card Header (gradient bg + floating Tour ID) -->
+            <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-xl relative">
+                <h2 class="text-3xl font-extrabold text-center">Payment Management System</h2>
+                <p class="text-blue-100 text-center mt-2 text-md">v14.0 - Traveler &amp; Vendor Payments</p>
+                <!-- Floating Tour ID -->
+                <div class="floating-tourid flex flex-col items-end">
+                    <label for="tourIdFloating" class="text-xs font-bold text-gray-100 mr-1 mb-1">Tour ID</label>
+                    <input type="text" id="tourIdFloating" name="tourIdFloating"
+                           class="block h-8 w-full rounded-md border border-blue-200 bg-white px-2 py-1 text-sm text-blue-900 focus:ring-blue-400 focus:border-blue-600"
+                           placeholder="Tour ID"
+                           oninput="copyTourIdToMain(this.value)">
+                </div>
+            </div>
+            <!-- CA Logo and Company -->
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <img src="https://content.googleapis.com/v1/files/uploaded:CA_India_Logo.png-3730ebe2-d07-4775-abbd-9e203964f871?alt=media" alt="CA INDIA Logo" class="max-h-12 max-w-24 object-contain border border-gray-300 rounded-lg">
+                <p class="text-center text-gray-600 text-sm font-bold">Property: Anurag Maheshwari and Company</p>
+            </div>
+            <!-- Invoice Action Buttons -->
+            <div class="invoice-actions">
+                <button
+                    type="button"
+                    class="invoice-btn"
+                    onclick="window.open('invoice.html','_blank')"
+                    title="Open the Invoice app (new tab)"
+                >Do you want to raise an Invoice also?</button>
+                <button
+                    type="button"
+                    class="show-invoice-btn"
+                    onclick="showInvoiceForTour()"
+                    title="Show invoice for entered Tour ID"
+                >Show Invoice for This Tour</button>
+            </div>
+            <!-- Main Form Card -->
+            <div class="p-6">
+                <!-- ========== BEGIN FULL FORM ========== -->
+                <form id="paymentForm" class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <div class="flex space-x-6 justify-center md:justify-start" id="formTypeRadioGroup">
+                                <div class="flex items-center space-x-2">
+                                    <input type="radio" id="traveler" name="formType" value="traveler" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                    <label for="traveler" class="text-base font-medium text-gray-700">Traveler Payment</label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input type="radio" id="vendor" name="formType" value="vendor" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    <label for="vendor" class="text-base font-medium text-gray-700">Vendor Payment</label>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <!-- Traveler Fields -->
+                                <div id="travelerFields" class="space-y-4">
+                                    <div class="space-y-2">
+                                        <label for="tourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
+                                        <div class="flex items-center">
+                                            <input type="text" id="tourId" name="tourId" required
+                                             class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                             oninput="copyTourIdToFloating(this.value)">
+                                            <img id="tourDestinationImage" class="tour-destination-image" alt="Destination Image">
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="paymentStatusTraveler" class="text-sm font-medium leading-none">Payment Status <span class="text-red-500">*</span></label>
+                                        <select id="paymentStatusTraveler" name="paymentStatusTraveler" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <option value="advance">Advance</option>
+                                            <option value="partial">Partial</option>
+                                            <option value="full">Full</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-sm font-medium leading-none">Is Group Tour?</label>
+                                        <div class="flex space-x-4" id="isGroupTourRadioGroup">
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" id="groupNo" name="isGroupTour" value="no" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                                                <label for="groupNo" class="text-base font-medium text-gray-700">No</label>
+                                            </div>
+                                            <div class="flex items-center space-x-2">
+                                                <input type="radio" id="groupYes" name="isGroupTour" value="yes" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500">
+                                                <label for="groupYes" class="text-base font-medium text-gray-700">Yes</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2" id="singleTravelerNameField">
+                                        <label for="travelerOrGroupName" class="text-sm font-medium leading-none">Traveler/Group Name <span class="text-red-500">*</span></label>
+                                        <input type="text" id="travelerOrGroupName" name="travelerOrGroupName" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+                                    <div class="space-y-2" id="singleTravelerAmountField">
+                                        <label for="totalAmount" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
+                                        <input type="number" id="totalAmount" name="totalAmount" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="entryDate" class="text-sm font-medium leading-none">Entry Date</label>
+                                        <input type="date" id="entryDate" name="entryDate" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="otherDetails" class="text-sm font-medium leading-none">Other Details</label>
+                                        <input type="text" id="otherDetails" name="otherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="receiptNumber" class="text-sm font-medium leading-none">Receipt Number</label>
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" id="receiptNumber" name="receiptNumber" readonly class="flex-1 h-10 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 cursor-not-allowed">
+                                            <button type="button" id="resetReceiptCounter" class="px-3 py-2 rounded-md font-semibold text-white bg-gray-500 hover:bg-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">Reset</button>
+                                        </div>
+                                    </div>
+                                    <div id="groupTourDetails" class="space-y-6 hidden mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <h3 class="text-lg font-semibold text-gray-800">Group Tour Details (Up to 20 Members)</h3>
+                                        <div id="groupMembersContainer" class="space-y-4"></div>
+                                        <button type="button" id="addMemberButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
+                                            Add Member
+                                        </button>
+                                        <p id="memberLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 members can be added.</p>
+                                    </div>
+                                </div>
+                                <!-- Vendor Fields -->
+                                <div id="vendorFields" class="space-y-4 hidden">
+                                    <div class="space-y-2">
+                                        <label for="vendorTourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
+                                        <div class="flex items-center">
+                                            <input type="text" id="vendorTourId" name="vendorTourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                        </div>
+                                    </div>
+                                    <div id="vendorServicesContainer" class="space-y-6 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <h3 class="text-lg font-semibold text-gray-800">Vendor Services (Up to 20 Services)</h3>
+                                    </div>
+                                    <button type="button" id="addVendorServiceButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
+                                        Add Service
+                                    </button>
+                                    <p id="vendorServiceLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 services can be added.</p>
+                                    <div class="space-y-2">
+                                        <label for="vendorOtherDetails" class="text-sm font-medium leading-none">Other Details</label>
+                                        <input type="text" id="vendorOtherDetails" name="vendorOtherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Right Column - Common Payment Details (for Traveler) -->
+                        <div class="space-y-6" id="commonPaymentDetailsColumn">
+                            <div class="space-y-2">
+                                <label for="paymentMode" class="text-sm font-medium leading-none">Payment Mode</label>
+                                <select id="paymentMode" name="paymentMode" class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                    <option value="cash">Cash</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div id="paymentDetailsFields" class="space-y-4">
+                                <div class="space-y-2">
+                                    <label for="paymentType" class="text-sm font-medium leading-none">Payment Type</label>
+                                    <input type="text" id="paymentType" name="paymentType" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="bankName" class="text-sm font-medium leading-none">Bank Name</label>
+                                    <input type="text" id="bankName" name="bankName" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center md:justify-end mt-8">
+                        <button type="submit" id="submitButton" class="w-full md:w-auto px-8 py-3 text-lg rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300">
+                            Submit Payment
+                        </button>
+                    </div>
+                    <div id="submitResultMessage" class="hidden p-4 mt-6 rounded-lg text-center font-medium"></div>
+                </form>
+                <!-- ========== END FORM ========== -->
+            </div> <!-- End .p-6 Main form card inner -->
+        </div>   <!-- End .bg-white main card -->
+
+        <!-- Hidden IFrame (for sheet integration posts etc.) -->
+        <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
+    </div> <!-- End .w-full .max-w-5xl -->
+    <script>
+    // Two-way sync for main and floating Tour ID
     function copyTourIdToMain(val) {
-        var main = document.getElementById('tourId');
-        if(main && main.value !== val) main.value = val;
+      var main = document.getElementById('tourId');
+      if(main && main.value !== val) main.value = val;
     }
     function copyTourIdToFloating(val) {
-        var flt = document.getElementById('tourIdFloating');
-        if(flt && flt.value !== val) flt.value = val;
+      var flt = document.getElementById('tourIdFloating');
+      if(flt && flt.value !== val) flt.value = val;
     }
     function showInvoiceForTour() {
-        const tourId = document.getElementById('tourIdFloating').value || document.getElementById('tourId')?.value || '';
-        if(!tourId) return alert('Please enter Tour ID!');
-        window.open(`invoice.html?tourId=${encodeURIComponent(tourId)}`,'_blank');
+      const tourId = document.getElementById('tourIdFloating').value || document.getElementById('tourId')?.value || '';
+      if(!tourId) return alert('Please enter Tour ID!');
+      window.open(`invoice.html?tourId=${encodeURIComponent(tourId)}`,'_blank');
     }
 
-    // BELOW: Your entire app logic (copied in full from paste-2.txt) --
-    // This is an example. PUT ALL THE SCRIPT CONTENT from your paste-2.txt file HERE.
-    // For brevity, and character limit here, I'm not able to paste the entire 64,000+ characters in this reply.
-    // But literally: Copy all <script> JavaScript logic from your `paste-2.txt` and paste here.
-    //
-    // The code will function identically to before, **except with the additional buttons and floating Tour ID**.
-    //
-    // If you want me to split out any section or resolve a specific code conflict, just specify!
+    // ------ (Your full payment-app JavaScript goes below; copy all of it unchanged from your current working file) ------
+// ====== BEGIN YOUR FULL APP'S JAVASCRIPT (copy/paste everything in your <script> ... </script> from your original file here) =====
+
+// Example—begin sample of payment form functionality (replace with your complete code)
+
+/*
+// Example logic... (this is just a placeholder!)
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Your submission logic here, including sheet integration, field validation, etc.
+    alert("Your payment has been recorded!");
+});
+*/
+
+// ====== END YOUR FULL JAVASCRIPT ======
 </script>
 </body>
 </html>
