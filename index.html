@@ -133,6 +133,23 @@
     .g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
     @media(max-width:600px){ .g2,.g3{ grid-template-columns:1fr; } .mode-btn{ padding:10px 8px; font-size:.75rem; } }
+
+    /* ── Ledger tab ── */
+    .mode-btn.l-active { background: linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; }
+    .ledger-preview { border-radius:12px; padding:16px 18px; border:2px solid #c4b5fd; background:#faf5ff; margin-top:10px; display:none; }
+    .ledger-preview.show { display:block; }
+    .lp-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:.84rem; }
+    .lp-row + .lp-row { border-top:1px solid rgba(0,0,0,.06); }
+    .lp-net { font-size:1rem; font-weight:800; padding-top:10px; margin-top:6px; border-top:2px solid rgba(0,0,0,.12); }
+    .lp-green { color:#059669; } .lp-red { color:#dc2626; } .lp-blue { color:#7c3aed; }
+    .wa-btn { display:inline-flex; align-items:center; gap:7px; padding:12px 22px; border-radius:12px; border:none; cursor:pointer; font-size:.9rem; font-weight:700; background:#25D366; color:#fff; transition:all .2s; }
+    .wa-btn:hover { background:#1ebe5a; transform:translateY(-1px); }
+    .gen-btn { display:inline-flex; align-items:center; gap:7px; padding:12px 22px; border-radius:12px; border:none; cursor:pointer; font-size:.9rem; font-weight:700; background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; box-shadow:0 4px 14px rgba(124,58,237,.3); transition:all .2s; width:100%; justify-content:center; }
+    .gen-btn:hover:not(:disabled) { filter:brightness(1.08); transform:translateY(-1px); }
+    .gen-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .success-box { background:#f0fdf4; border:2px solid #6ee7b7; border-radius:14px; padding:18px; text-align:center; display:none; margin-top:14px; }
+    .success-box.show { display:block; }
+
     .hidden { display:none !important; }
     .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
   </style>
@@ -168,6 +185,9 @@
       </button>
       <button class="mode-btn" id="btnP" onclick="switchMode('vendor')">
         <span class="mode-icon">🏪</span>Payment — Vendor / Supplier
+      </button>
+      <button class="mode-btn" id="btnL" onclick="switchMode('ledger')">
+        <span class="mode-icon">📊</span>Tour Ledger PDF
       </button>
     </div>
   </div>
@@ -344,6 +364,76 @@
 
     </div><!-- /vendorSection -->
 
+
+    <!-- ═══════ TOUR LEDGER SECTION ═══════ -->
+    <div id="ledgerSection" class="hidden">
+
+      <div class="card">
+        <div class="card-hd">
+          <span class="stag" style="background:#ede9fe;color:#5b21b6;">📊 Select Tour to Close</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;font-weight:500;">Generates PDF · Emails · WhatsApp share</span>
+        </div>
+        <div class="card-bd">
+
+          <div class="fg">
+            <label class="fl">Tour ID <span class="req">*</span>
+              <span style="font-weight:400;color:#9ca3af;font-size:.7rem;">— select or type the tour to close</span>
+            </label>
+            <input type="text" id="ledgerTourId" class="fi" style="border-color:#a78bfa;" placeholder="Pick from history or type…" autocomplete="off" list="ledgerTourIdDL" oninput="onLedgerTourId()">
+            <datalist id="ledgerTourIdDL"></datalist>
+            <div id="lChips" class="chips" style="margin-top:8px;"></div>
+
+            <!-- Preview card -->
+            <div class="ledger-preview" id="ledgerPreview">
+              <div style="font-size:.7rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;" id="lpTitle">Tour Preview</div>
+              <div class="lp-row"><span style="color:#6b7280;font-weight:500;">💰 Total Receipts</span><span class="lp-green" id="lpReceipts" style="font-weight:700;">₹0</span></div>
+              <div class="lp-row"><span style="color:#6b7280;font-weight:500;">🏪 Vendor Payments</span><span class="lp-red" id="lpPayments" style="font-weight:700;">₹0</span></div>
+              <div class="lp-row lp-net">
+                <span style="color:#111827;">Net Balance</span>
+                <span id="lpNet" style="font-weight:800;font-size:1.05rem;">₹0</span>
+              </div>
+              <div id="lpNote" style="font-size:.75rem;margin-top:8px;"></div>
+            </div>
+          </div>
+
+          <div style="background:#ede9fe;border:1.5px solid #c4b5fd;border-radius:10px;padding:11px 14px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;">
+            <span style="font-size:1.1rem;">📧</span>
+            <div style="font-size:.8rem;color:#4c1d95;line-height:1.6;">
+              PDF will be <strong>automatically emailed to anuragmah@gmail.com</strong> and saved to your Google Drive folder <strong>"Dream Destination – Tour Ledgers"</strong> — no action needed.
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">Remarks / Note for Ledger <span style="color:#9ca3af;font-weight:400;">(optional)</span></label>
+            <input type="text" id="ledgerNote" class="fi" style="border-color:#a78bfa;" placeholder="e.g. Final settlement done">
+          </div>
+
+          <div style="background:#fef3c7;border:1.5px solid #fbbf24;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#92400e;font-weight:500;margin-bottom:14px;">
+            ⚠️ This will mark the tour as CLOSED, generate a PDF ledger, save it to your Google Drive folder <strong>"Dream Destination – Tour Ledgers"</strong>, and email it if an address is provided.
+          </div>
+
+          <button type="button" class="gen-btn" id="ledgerBtn" onclick="generateLedger()">
+            📄 Generate &amp; Close Tour
+          </button>
+
+          <!-- Success box -->
+          <div class="success-box" id="ledgerSuccess">
+            <div style="font-size:1.5rem;margin-bottom:6px;">✅</div>
+            <div style="font-weight:700;color:#065f46;font-size:1rem;margin-bottom:4px;">Tour Ledger Generated!</div>
+            <div id="ledgerSuccessMsg" style="font-size:.82rem;color:#374151;margin-bottom:14px;"></div>
+            <button type="button" class="wa-btn" id="waBtn" onclick="openWhatsApp()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+              Share on WhatsApp
+            </button>
+            <div style="margin-top:10px;">
+              <button type="button" onclick="resetLedgerForm()" style="font-size:.8rem;color:#7c3aed;font-weight:600;background:none;border:none;cursor:pointer;text-decoration:underline;">Generate another ledger →</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /ledgerSection -->
+
     <button type="submit" class="sub-btn r" id="submitBtn">Submit Receipt ₹ →</button>
     <div class="result" id="resultMsg"></div>
 
@@ -433,7 +523,7 @@ function populateDatalistsAndChips() {
   const ids = liveTourIds.length ? liveTourIds : getTourHist();
 
   // datalists
-  ['tourIdDL','vendorTourIdDL'].forEach(dlId => {
+  ['tourIdDL','vendorTourIdDL','ledgerTourIdDL'].forEach(dlId => {
     const dl = document.getElementById(dlId);
     if (dl) dl.innerHTML = ids.map(id => `<option value="${id}">`).join('');
   });
@@ -444,6 +534,10 @@ function populateDatalistsAndChips() {
   });
 
   // vendor chips — recent 8
+  renderChips('lChips', ids.slice(0,8), id => {
+    document.getElementById('ledgerTourId').value = id;
+    onLedgerTourId();
+  });
   renderChips('vChips', ids.slice(0,8), id => {
     document.getElementById('vendorTourId').value = id;
     onVendorTourId();
@@ -526,11 +620,16 @@ function showBalanceCard(tourId, receipts, payments) {
 // ═══════════════════════════════════════════════════════════════
 function switchMode(mode) {
   currentMode = mode;
-  const isTrav = mode === 'traveler';
+  const isTrav   = mode === 'traveler';
+  const isVendor = mode === 'vendor';
+  const isLedger = mode === 'ledger';
   document.getElementById('travelerSection').classList.toggle('hidden', !isTrav);
-  document.getElementById('vendorSection').classList.toggle('hidden',   isTrav);
-  document.getElementById('btnR').className = 'mode-btn' + (isTrav  ? ' r-active' : '');
-  document.getElementById('btnP').className = 'mode-btn' + (!isTrav ? ' p-active' : '');
+  document.getElementById('vendorSection').classList.toggle('hidden',   !isVendor);
+  document.getElementById('ledgerSection').classList.toggle('hidden',   !isLedger);
+  document.getElementById('submitBtn').classList.toggle('hidden',        isLedger);
+  document.getElementById('btnR').className = 'mode-btn' + (isTrav   ? ' r-active' : '');
+  document.getElementById('btnP').className = 'mode-btn' + (isVendor  ? ' p-active' : '');
+  document.getElementById('btnL').className = 'mode-btn' + (isLedger  ? ' l-active' : '');
   const btn = document.getElementById('submitBtn');
   btn.className   = 'sub-btn ' + (isTrav ? 'r' : 'p');
   btn.textContent = isTrav ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
@@ -822,6 +921,102 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
     }
   };
 });
+
+
+// ═══════════════════════════════════════════════════════════════
+// LEDGER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════
+let lastWaSummary = '';
+
+function onLedgerTourId() {
+  const val = document.getElementById('ledgerTourId').value.trim().toUpperCase();
+  const preview = document.getElementById('ledgerPreview');
+  preview.classList.remove('show');
+  if (val.length < 2) return;
+
+  const d = liveData[val];
+  if (d) {
+    document.getElementById('lpTitle').textContent = val;
+    document.getElementById('lpReceipts').textContent = fmt(d.receipts || 0);
+    document.getElementById('lpPayments').textContent = fmt(d.payments || 0);
+    const net = (d.receipts || 0) - (d.payments || 0);
+    const netEl = document.getElementById('lpNet');
+    netEl.textContent = fmt(Math.abs(net));
+    const noteEl = document.getElementById('lpNote');
+    if (net > 0) {
+      netEl.className = 'lp-green';
+      noteEl.innerHTML = '<span style="color:#059669;">✔ Balance: ₹' + Math.abs(net).toLocaleString('en-IN') + ' in hand</span>';
+    } else if (net === 0) {
+      netEl.className = 'lp-blue';
+      noteEl.innerHTML = '<span style="color:#7c3aed;">◉ Fully settled</span>';
+    } else {
+      netEl.className = 'lp-red';
+      noteEl.innerHTML = '<span style="color:#dc2626;">⚠ Vendor payments exceed receipts by ₹' + Math.abs(net).toLocaleString('en-IN') + '</span>';
+    }
+    preview.classList.add('show');
+  }
+}
+
+function generateLedger() {
+  const tourId = document.getElementById('ledgerTourId').value.trim().toUpperCase();
+  const email  = ''; // always handled by Apps Script — emails anuragmah@gmail.com automatically
+  const note   = document.getElementById('ledgerNote').value.trim();
+
+  if (!tourId) { alert('Please enter or select a Tour ID first.'); return; }
+
+  const btn = document.getElementById('ledgerBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating PDF… (may take 15–30 seconds)';
+  document.getElementById('ledgerSuccess').classList.remove('show');
+
+  const url = BACKEND + '?action=closeledger&tourId=' + encodeURIComponent(tourId)
+    + '&email=' + encodeURIComponent(email)
+    + '&note='  + encodeURIComponent(note);
+
+  fetch(url, { redirect: 'follow' })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) throw new Error(data.error || 'Generation failed');
+
+      lastWaSummary = data.waSummary || '';
+
+      const net = data.net || 0;
+      const netStr = '₹' + Math.abs(net).toLocaleString('en-IN') + (net >= 0 ? ' Profit' : ' Loss');
+      let msg = '📄 <strong>' + data.docTitle + '</strong> saved to Google Drive.<br>';
+      if (data.emailSent) msg += '📧 PDF emailed to ' + email + '.<br>';
+      msg += '📋 Receipts: ' + (data.receiptsCount || 0) + ' entries &nbsp;|&nbsp; Vendor payments: ' + (data.paymentsCount || 0) + ' entries.<br>';
+      msg += '💹 Net: <strong>' + netStr + '</strong>';
+
+      document.getElementById('ledgerSuccessMsg').innerHTML = msg;
+      document.getElementById('ledgerSuccess').classList.add('show');
+      document.getElementById('waBtn').style.display = lastWaSummary ? 'inline-flex' : 'none';
+
+      // Update local balance data
+      if (liveData[tourId]) { liveData[tourId].closed = true; }
+      setTimeout(fetchLiveData, 3000);
+    })
+    .catch(err => {
+      alert('Error: ' + err.message + '\n\nIf this is the first time, please run the authorization step in Apps Script (see instructions in the .gs file).');
+    })
+    .finally(() => {
+      btn.disabled = false;
+      btn.innerHTML = '📄 Generate &amp; Close Tour';
+    });
+}
+
+function openWhatsApp() {
+  if (!lastWaSummary) return;
+  window.open('https://wa.me/?text=' + encodeURIComponent(lastWaSummary), '_blank');
+}
+
+function resetLedgerForm() {
+  document.getElementById('ledgerTourId').value = '';
+  // email field removed — auto-handled by Apps Script
+  document.getElementById('ledgerNote').value   = '';
+  document.getElementById('ledgerPreview').classList.remove('show');
+  document.getElementById('ledgerSuccess').classList.remove('show');
+  lastWaSummary = '';
+}
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
