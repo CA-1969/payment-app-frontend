@@ -983,7 +983,7 @@ function generateLedger() {
       const net = data.net || 0;
       const netStr = '₹' + Math.abs(net).toLocaleString('en-IN') + (net >= 0 ? ' Profit' : ' Loss');
       let msg = '📄 <strong>' + data.docTitle + '</strong> saved to Google Drive.<br>';
-      if (data.emailSent) msg += '📧 PDF emailed to ' + email + '.<br>';
+      if (data.emailSent) msg += '📧 PDF emailed to <strong>anuragmah@gmail.com</strong>.<br>';
       msg += '📋 Receipts: ' + (data.receiptsCount || 0) + ' entries &nbsp;|&nbsp; Vendor payments: ' + (data.paymentsCount || 0) + ' entries.<br>';
       msg += '💹 Net: <strong>' + netStr + '</strong>';
 
