@@ -8,237 +8,204 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --receipt-green: #059669;
-      --payment-red: #dc2626;
-      --sky: #0369a1;
-      --sky-light: #e0f2fe;
-      --amber: #d97706;
-      --amber-light: #fef3c7;
-      --card-shadow: 0 4px 24px rgba(0,0,0,.08);
+      --green:  #059669; --green-lt: #d1fae5;
+      --red:    #dc2626; --red-lt:   #fee2e2;
+      --blue:   #0369a1; --blue-lt:  #e0f2fe;
+      --amber:  #d97706; --amber-lt: #fef3c7;
+      --shadow: 0 4px 24px rgba(0,0,0,.08);
     }
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #f0f4f8; min-height: 100vh; }
 
     /* ── Header ── */
-    .app-header {
-      background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%);
-      padding: 0;
-      position: sticky; top: 0; z-index: 50;
-      box-shadow: 0 2px 12px rgba(3,105,161,.4);
-    }
-    .header-inner { max-width: 860px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .brand-name { font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: .5px; }
-    .brand-sub  { font-size: .7rem; color: #bae6fd; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
-    .header-badge { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 4px 12px; font-size: .72rem; color: #e0f2fe; font-weight: 600; }
+    .app-header { background: linear-gradient(135deg,#0c4a6e,#0369a1 55%,#0ea5e9); position:sticky; top:0; z-index:50; box-shadow:0 2px 12px rgba(3,105,161,.4); }
+    .header-inner { max-width:880px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .brand-name { font-size:1.3rem; font-weight:800; color:#fff; letter-spacing:.5px; }
+    .brand-sub  { font-size:.68rem; color:#bae6fd; font-weight:500; letter-spacing:1px; text-transform:uppercase; }
+    .hbadge { background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:4px 12px; font-size:.7rem; color:#e0f2fe; font-weight:600; }
+
+    /* ── Sync status pill ── */
+    .sync-pill { display:inline-flex; align-items:center; gap:5px; font-size:.7rem; font-weight:600; padding:4px 10px; border-radius:20px; }
+    .sync-pill.loading { background:#fef3c7; color:#92400e; }
+    .sync-pill.ok      { background:#d1fae5; color:#065f46; }
+    .sync-pill.error   { background:#fee2e2; color:#991b1b; }
+    .sync-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+    .sync-dot.pulse { animation: pulse 1.4s infinite; background:#d97706; }
+    .sync-dot.ok    { background:#059669; }
+    .sync-dot.err   { background:#dc2626; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
     /* ── Mode Toggle ── */
-    .mode-toggle { display: flex; border-radius: 14px; overflow: hidden; border: 2px solid #e2e8f0; background: #fff; box-shadow: var(--card-shadow); }
-    .mode-btn { flex: 1; padding: 12px 24px; font-size: .875rem; font-weight: 600; cursor: pointer; border: none; background: transparent; transition: all .2s; position: relative; }
-    .mode-btn.receipt-active { background: var(--receipt-green); color: #fff; }
-    .mode-btn.payment-active { background: var(--payment-red); color: #fff; }
-    .mode-btn:not(.receipt-active):not(.payment-active) { color: #64748b; }
-    .mode-btn .mode-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+    .mode-toggle { display:flex; border-radius:14px; overflow:hidden; border:2px solid #e2e8f0; background:#fff; box-shadow:var(--shadow); }
+    .mode-btn { flex:1; padding:12px 20px; font-size:.875rem; font-weight:600; cursor:pointer; border:none; background:transparent; transition:all .2s; }
+    .mode-btn .mode-icon { font-size:1.1rem; display:block; margin-bottom:2px; }
+    .mode-btn.r-active { background:var(--green); color:#fff; }
+    .mode-btn.p-active { background:var(--red);   color:#fff; }
+    .mode-btn:not(.r-active):not(.p-active) { color:#64748b; }
 
     /* ── Cards ── */
-    .card { background: #fff; border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid #e8edf2; }
-    .card-header { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; }
-    .card-body { padding: 20px; }
-    .section-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
-    .tag-receipt { background: #d1fae5; color: #065f46; }
-    .tag-payment { background: #fee2e2; color: #991b1b; }
+    .card { background:#fff; border-radius:16px; box-shadow:var(--shadow); border:1px solid #e8edf2; margin-bottom:16px; }
+    .card-hd { padding:14px 18px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .card-bd { padding:18px; }
+    .stag { display:inline-flex; align-items:center; gap:5px; font-size:.7rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase; padding:3px 9px; border-radius:20px; }
+    .stag-r { background:#d1fae5; color:#065f46; }
+    .stag-p { background:#fee2e2; color:#991b1b; }
 
-    /* ── Form Fields ── */
-    .field-label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
-    .field-label .req { color: #ef4444; }
-    .field-input {
-      width: 100%; height: 40px; padding: 0 12px;
-      border: 1.5px solid #d1d5db; border-radius: 10px;
-      font-size: .875rem; color: #111827;
-      background: #fff; transition: border .15s, box-shadow .15s;
-      outline: none;
-    }
-    .field-input:focus { border-color: #0369a1; box-shadow: 0 0 0 3px rgba(3,105,161,.12); }
-    .field-input.receipt-focus:focus { border-color: var(--receipt-green); box-shadow: 0 0 0 3px rgba(5,150,105,.12); }
-    .field-input.payment-focus:focus { border-color: var(--payment-red); box-shadow: 0 0 0 3px rgba(220,38,38,.12); }
-    .field-input[readonly] { background: #f8fafc; color: #6b7280; }
-    select.field-input { cursor: pointer; }
-    .field-group { margin-bottom: 14px; }
+    /* ── Balance Card ── */
+    .balance-card { border-radius:12px; padding:14px 16px; border:2px solid; margin-top:10px; display:none; }
+    .balance-card.show { display:block; }
+    .balance-card.healthy { border-color:#6ee7b7; background:#f0fdf9; }
+    .balance-card.warning { border-color:#fbbf24; background:#fffbeb; }
+    .balance-card.over    { border-color:#fca5a5; background:#fff5f5; }
+    .bal-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; font-size:.82rem; }
+    .bal-row + .bal-row { border-top:1px solid rgba(0,0,0,.06); }
+    .bal-label { color:#6b7280; font-weight:500; }
+    .bal-value { font-weight:700; }
+    .bal-total { font-size:.95rem; padding-top:8px; margin-top:4px; border-top:2px solid rgba(0,0,0,.1); }
+    .bal-green { color:#059669; }
+    .bal-red   { color:#dc2626; }
+    .bal-blue  { color:#0369a1; }
 
-    /* ── Tour ID input with history ── */
-    .tour-id-wrap { position: relative; }
-    .tour-id-wrap input { padding-right: 36px; }
-    .tour-id-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9ca3af; font-size: 1rem; display: none; }
-    .tour-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .tour-chip {
-      font-size: .72rem; font-weight: 600; padding: 3px 10px;
-      border-radius: 20px; cursor: pointer; border: 1.5px solid #d1d5db;
-      color: #374151; background: #f8fafc; transition: all .15s;
-      white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis;
-    }
-    .tour-chip:hover { border-color: #0369a1; color: #0369a1; background: #eff6ff; }
+    /* ── Recon warn/ok ── */
+    .recon-msg { display:none; align-items:flex-start; gap:8px; padding:9px 13px; border-radius:10px; font-size:.8rem; font-weight:500; margin-top:8px; }
+    .recon-msg.show  { display:flex; }
+    .recon-msg.warn  { background:var(--amber-lt); border:1.5px solid #fbbf24; color:#92400e; }
+    .recon-msg.ok    { background:var(--green-lt); border:1.5px solid #6ee7b7; color:#065f46; }
 
-    /* ── Reconciliation warning ── */
-    .recon-warn { display: none; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: 10px; font-size: .8rem; font-weight: 500; margin-top: 8px; }
-    .recon-warn.show { display: flex; }
-    .recon-warn.warn { background: #fef3c7; border: 1.5px solid #fbbf24; color: #92400e; }
-    .recon-warn.ok   { background: #d1fae5; border: 1.5px solid #6ee7b7; color: #065f46; }
+    /* ── Fields ── */
+    .fl { display:block; font-size:.78rem; font-weight:600; color:#374151; margin-bottom:5px; }
+    .fl .req { color:#ef4444; }
+    .fi { width:100%; height:40px; padding:0 12px; border:1.5px solid #d1d5db; border-radius:10px; font-size:.875rem; color:#111827; background:#fff; outline:none; transition:border .15s,box-shadow .15s; }
+    .fi:focus   { border-color:var(--blue);  box-shadow:0 0 0 3px rgba(3,105,161,.12); }
+    .fi.rf:focus{ border-color:var(--green); box-shadow:0 0 0 3px rgba(5,150,105,.12); }
+    .fi.pf:focus{ border-color:var(--red);   box-shadow:0 0 0 3px rgba(220,38,38,.12); }
+    .fi[readonly] { background:#f8fafc; color:#6b7280; }
+    .fg { margin-bottom:14px; }
 
-    /* ── Radio Pill ── */
-    .radio-pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .radio-pill { position: relative; }
-    .radio-pill input[type=radio] { position: absolute; opacity: 0; width: 0; }
-    .radio-pill label {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 7px 16px; border-radius: 20px;
-      border: 1.5px solid #d1d5db; font-size: .8rem; font-weight: 600;
-      cursor: pointer; transition: all .15s; color: #6b7280; background: #f8fafc;
-    }
-    .radio-pill input:checked + label { border-color: #0369a1; color: #0369a1; background: #eff6ff; }
-    .radio-pill.green input:checked + label { border-color: var(--receipt-green); color: var(--receipt-green); background: #d1fae5; }
+    /* ── Tour chips ── */
+    .chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+    .chip { font-size:.7rem; font-weight:600; padding:3px 9px; border-radius:20px; cursor:pointer; border:1.5px solid #d1d5db; color:#374151; background:#f8fafc; transition:all .15s; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .chip:hover { border-color:var(--blue); color:var(--blue); background:#eff6ff; }
+    .chips-label { font-size:.68rem; font-weight:600; color:#9ca3af; text-transform:uppercase; letter-spacing:.6px; margin-bottom:3px; }
 
-    /* ── Group member row ── */
-    .member-row { background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative; }
-    .member-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .member-badge { font-size: .7rem; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 20px; }
-    .remove-btn { font-size: .72rem; font-weight: 600; color: #ef4444; cursor: pointer; background: none; border: none; padding: 2px 6px; }
-    .remove-btn:hover { color: #b91c1c; }
+    /* ── Radio pills ── */
+    .rpg { display:flex; gap:7px; flex-wrap:wrap; }
+    .rp { position:relative; }
+    .rp input[type=radio] { position:absolute; opacity:0; width:0; }
+    .rp label { display:inline-flex; align-items:center; gap:4px; padding:6px 14px; border-radius:20px; border:1.5px solid #d1d5db; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; color:#6b7280; background:#f8fafc; }
+    .rp input:checked + label { border-color:var(--blue); color:var(--blue); background:#eff6ff; }
+    .rp.g input:checked + label { border-color:var(--green); color:var(--green); background:var(--green-lt); }
 
-    /* ── Vendor service row ── */
-    .service-row { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-    .service-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .service-badge { font-size: .7rem; font-weight: 700; background: #ffedd5; color: #9a3412; padding: 2px 8px; border-radius: 20px; }
+    /* ── Member / Service rows ── */
+    .mrow { background:#f8fafc; border:1px solid #e8edf2; border-radius:12px; padding:13px; margin-bottom:10px; }
+    .srow { background:#fff7ed; border:1px solid #fed7aa; border-radius:12px; padding:13px; margin-bottom:10px; }
+    .row-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    .badge-m { font-size:.68rem; font-weight:700; background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:20px; }
+    .badge-s { font-size:.68rem; font-weight:700; background:#ffedd5; color:#9a3412; padding:2px 8px; border-radius:20px; }
+    .rm-btn { font-size:.72rem; font-weight:600; color:#ef4444; cursor:pointer; background:none; border:none; padding:2px 6px; }
 
-    /* ── Divider ── */
-    .divider { border: none; border-top: 1px solid #f1f5f9; margin: 16px 0; }
+    /* ── Add row btn ── */
+    .add-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:10px; cursor:pointer; font-size:.78rem; font-weight:600; border:1.5px dashed; background:transparent; transition:all .15s; }
+    .add-btn.g { border-color:var(--green); color:var(--green); }
+    .add-btn.g:hover { background:var(--green-lt); }
+    .add-btn.o { border-color:#ea580c; color:#ea580c; }
+    .add-btn.o:hover { background:#ffedd5; }
 
-    /* ── Submit button ── */
-    .submit-btn {
-      width: 100%; padding: 14px;
-      border: none; border-radius: 12px; cursor: pointer;
-      font-size: 1rem; font-weight: 700; letter-spacing: .3px;
-      transition: all .2s; position: relative; overflow: hidden;
-    }
-    .submit-btn.receipt { background: linear-gradient(135deg, #059669, #10b981); color: #fff; box-shadow: 0 4px 14px rgba(5,150,105,.3); }
-    .submit-btn.payment { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.3); }
-    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
-    .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+    /* ── Running total ── */
+    .rtotal { font-size:.78rem; font-weight:600; color:#6b7280; margin-top:5px; }
+    .rtotal span { color:var(--blue); font-size:.88rem; }
 
-    /* ── Result message ── */
-    .result-msg { display: none; padding: 12px 16px; border-radius: 10px; font-size: .875rem; font-weight: 500; text-align: center; margin-top: 14px; }
-    .result-msg.show { display: block; }
-    .result-msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-    .result-msg.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-    .result-msg.warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    /* ── Submit ── */
+    .sub-btn { width:100%; padding:14px; border:none; border-radius:12px; cursor:pointer; font-size:1rem; font-weight:700; transition:all .2s; }
+    .sub-btn.r { background:linear-gradient(135deg,#059669,#10b981); color:#fff; box-shadow:0 4px 14px rgba(5,150,105,.3); }
+    .sub-btn.p { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; box-shadow:0 4px 14px rgba(220,38,38,.3); }
+    .sub-btn:hover:not(:disabled) { filter:brightness(1.06); transform:translateY(-1px); }
+    .sub-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
 
-    /* ── Add row button ── */
-    .add-row-btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px; border-radius: 10px; cursor: pointer;
-      font-size: .8rem; font-weight: 600; border: 1.5px dashed;
-      background: transparent; transition: all .15s;
-    }
-    .add-row-btn.green { border-color: var(--receipt-green); color: var(--receipt-green); }
-    .add-row-btn.green:hover { background: #d1fae5; }
-    .add-row-btn.orange { border-color: #ea580c; color: #ea580c; }
-    .add-row-btn.orange:hover { background: #ffedd5; }
+    /* ── Result ── */
+    .result { display:none; padding:12px 16px; border-radius:10px; font-size:.875rem; font-weight:500; text-align:center; margin-top:14px; }
+    .result.show    { display:block; }
+    .result.success { background:var(--green-lt); color:#065f46; border:1px solid #a7f3d0; }
+    .result.error   { background:var(--red-lt);   color:#991b1b; border:1px solid #fca5a5; }
+    .result.warning { background:var(--amber-lt); color:#92400e; border:1px solid #fde68a; }
 
-    /* ── Amount display ── */
-    .running-total { font-size: .8rem; font-weight: 600; color: #6b7280; margin-top: 6px; }
-    .running-total span { color: #0369a1; font-size: .9rem; }
-
-    /* ── Receipt number badge ── */
-    .receipt-num-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 700; background: #eff6ff; color: #1e40af; padding: 6px 14px; border-radius: 20px; border: 1.5px solid #bfdbfe; }
-
-    /* ── Footer ── */
-    .app-footer { text-align: center; padding: 20px; font-size: .72rem; color: #9ca3af; }
-
-    /* Utilities */
-    .hidden { display: none !important; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    @media (max-width: 600px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .mode-btn { padding: 10px 10px; font-size: .78rem; }
-    }
+    /* ── Grids ── */
+    .g2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    @media(max-width:600px){ .g2,.g3{ grid-template-columns:1fr; } .mode-btn{ padding:10px 8px; font-size:.75rem; } }
+    .hidden { display:none !important; }
+    .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════ HEADER ═══════════════════ -->
+<!-- HEADER -->
 <header class="app-header">
   <div class="header-inner">
     <div>
       <div class="brand-name">✈ Dream Destination</div>
-      <div class="brand-sub">Payment Tracker &amp; Ledger</div>
+      <div class="brand-sub">Payment Tracker · Saharanpur</div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <span class="header-badge">v15.0</span>
-      <span class="header-badge" style="background:rgba(255,255,255,.08);font-size:.65rem;">M/s Anurag Maheshwari &amp; Co.</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span class="sync-pill loading" id="syncPill">
+        <span class="sync-dot pulse" id="syncDot"></span>
+        <span id="syncText">Loading sheet data…</span>
+      </span>
+      <span class="hbadge">v16.0</span>
+      <span class="hbadge" style="font-size:.62rem;">M/s Anurag Maheshwari &amp; Co.</span>
     </div>
   </div>
 </header>
 
-<!-- ═══════════════════ MAIN ═══════════════════ -->
-<main style="max-width:860px;margin:0 auto;padding:24px 16px 40px;">
+<!-- MAIN -->
+<main style="max-width:880px;margin:0 auto;padding:22px 14px 40px;">
 
-  <!-- Mode Toggle -->
-  <div style="margin-bottom:20px;">
+  <!-- Mode toggle -->
+  <div style="margin-bottom:18px;">
     <div class="mode-toggle">
-      <button class="mode-btn receipt-active" id="btnReceipt" onclick="switchMode('traveler')">
-        <span class="mode-icon">💰</span>
-        Receipt — Traveler Payment
+      <button class="mode-btn r-active" id="btnR" onclick="switchMode('traveler')">
+        <span class="mode-icon">💰</span>Receipt — Traveler Payment
       </button>
-      <button class="mode-btn" id="btnPayment" onclick="switchMode('vendor')">
-        <span class="mode-icon">🏪</span>
-        Payment — Vendor / Supplier
+      <button class="mode-btn" id="btnP" onclick="switchMode('vendor')">
+        <span class="mode-icon">🏪</span>Payment — Vendor / Supplier
       </button>
     </div>
   </div>
 
   <form id="mainForm" novalidate>
 
-    <!-- ───── TRAVELER RECEIPT SECTION ───── -->
+    <!-- ═══════ TRAVELER SECTION ═══════ -->
     <div id="travelerSection">
 
-      <!-- Row 1: Tour ID + Receipt No -->
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-header">
-          <span class="section-tag tag-receipt">📋 Tour & Receipt</span>
-        </div>
-        <div class="card-body">
-          <div class="grid-2">
-
-            <!-- Tour ID -->
-            <div class="field-group">
-              <label class="field-label">Tour ID <span class="req">*</span>
-                <span style="font-weight:400;color:#6b7280;font-size:.72rem;">e.g. GOA/SHARMA/GRP</span>
+      <div class="card">
+        <div class="card-hd"><span class="stag stag-r">📋 Tour &amp; Receipt</span></div>
+        <div class="card-bd">
+          <div class="g2">
+            <div class="fg">
+              <label class="fl">Tour ID <span class="req">*</span>
+                <span style="font-weight:400;color:#9ca3af;font-size:.7rem;"> e.g. GOA/SHARMA/GRP</span>
               </label>
-              <div class="tour-id-wrap">
-                <input type="text" id="tourId" class="field-input receipt-focus" placeholder="Destination/Name/Type" autocomplete="off" list="tourIdList">
-                <datalist id="tourIdList"></datalist>
-                <span class="tour-id-clear" id="tourIdClear" onclick="clearTourId()">✕</span>
-              </div>
-              <div class="tour-chips" id="travelerTourChips"></div>
+              <input type="text" id="tourId" class="fi rf" placeholder="Destination / Name / Type" autocomplete="off" list="tourIdDL">
+              <datalist id="tourIdDL"></datalist>
+              <div id="tChips" class="chips"></div>
             </div>
-
-            <!-- Receipt Number -->
-            <div class="field-group">
-              <label class="field-label">Receipt Number</label>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <input type="text" id="receiptNumber" readonly class="field-input" style="flex:1;">
-                <button type="button" onclick="resetReceiptCounter()" style="padding:8px 12px;border-radius:8px;border:1.5px solid #d1d5db;font-size:.78rem;font-weight:600;color:#6b7280;cursor:pointer;background:#f8fafc;white-space:nowrap;">↺ Reset</button>
+            <div class="fg">
+              <label class="fl">Receipt Number</label>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" id="receiptNumber" readonly class="fi" style="flex:1;">
+                <button type="button" onclick="resetReceipt()" style="padding:8px 10px;border-radius:8px;border:1.5px solid #d1d5db;font-size:.75rem;font-weight:600;color:#6b7280;cursor:pointer;background:#f8fafc;white-space:nowrap;">↺ Reset</button>
               </div>
             </div>
           </div>
 
-          <div class="grid-2">
-            <div class="field-group">
-              <label class="field-label">Entry Date</label>
-              <input type="date" id="entryDate" class="field-input receipt-focus">
+          <div class="g2">
+            <div class="fg">
+              <label class="fl">Entry Date</label>
+              <input type="date" id="entryDate" class="fi rf">
             </div>
-            <div class="field-group">
-              <label class="field-label">Payment Status <span class="req">*</span></label>
-              <select id="paymentStatusTraveler" class="field-input receipt-focus">
+            <div class="fg">
+              <label class="fl">Payment Status <span class="req">*</span></label>
+              <select id="paymentStatusTraveler" class="fi rf">
                 <option value="advance">Advance</option>
                 <option value="partial">Partial</option>
                 <option value="full">Full</option>
@@ -246,388 +213,458 @@
             </div>
           </div>
 
-          <div class="field-group">
-            <label class="field-label">Payment Mode</label>
-            <div class="radio-pill-group">
-              <div class="radio-pill green"><input type="radio" name="payMode" id="pmCash" value="cash" checked><label for="pmCash">💵 Cash</label></div>
-              <div class="radio-pill green"><input type="radio" name="payMode" id="pmUpi" value="upi"><label for="pmUpi">📱 UPI</label></div>
-              <div class="radio-pill green"><input type="radio" name="payMode" id="pmBank" value="bank_transfer"><label for="pmBank">🏦 Bank Transfer</label></div>
-              <div class="radio-pill green"><input type="radio" name="payMode" id="pmCheque" value="cheque"><label for="pmCheque">📃 Cheque</label></div>
-              <div class="radio-pill green"><input type="radio" name="payMode" id="pmOther" value="other"><label for="pmOther">⋯ Other</label></div>
+          <div class="fg">
+            <label class="fl">Payment Mode</label>
+            <div class="rpg">
+              <div class="rp g"><input type="radio" name="payMode" id="pmCash"   value="cash"          checked onchange="toggleBank()"><label for="pmCash">💵 Cash</label></div>
+              <div class="rp g"><input type="radio" name="payMode" id="pmUpi"    value="upi"                  onchange="toggleBank()"><label for="pmUpi">📱 UPI</label></div>
+              <div class="rp g"><input type="radio" name="payMode" id="pmBank"   value="bank_transfer"        onchange="toggleBank()"><label for="pmBank">🏦 Bank Transfer</label></div>
+              <div class="rp g"><input type="radio" name="payMode" id="pmCheque" value="cheque"               onchange="toggleBank()"><label for="pmCheque">📃 Cheque</label></div>
+              <div class="rp g"><input type="radio" name="payMode" id="pmOther"  value="other"                onchange="toggleBank()"><label for="pmOther">⋯ Other</label></div>
             </div>
           </div>
 
-          <div id="bankDetailsRow" class="grid-2 hidden" style="margin-top:6px;">
-            <div class="field-group" style="margin-bottom:0;">
-              <label class="field-label">Bank Name</label>
-              <input type="text" id="bankName" class="field-input receipt-focus" placeholder="e.g. HDFC, SBI">
+          <div id="bankRow" class="g2 hidden" style="margin-top:6px;">
+            <div class="fg" style="margin-bottom:0;"><label class="fl">Bank Name</label>
+              <input type="text" id="bankName" class="fi rf" placeholder="e.g. HDFC, SBI, YES BANK">
             </div>
-            <div class="field-group" style="margin-bottom:0;">
-              <label class="field-label">Payment / Txn Reference</label>
-              <input type="text" id="paymentType" class="field-input receipt-focus" placeholder="UPI ID / Txn No / Cheque No">
+            <div class="fg" style="margin-bottom:0;"><label class="fl">Txn / Cheque / UPI Ref</label>
+              <input type="text" id="paymentType" class="fi rf" placeholder="Reference number">
             </div>
           </div>
 
-          <div class="field-group" style="margin-top:12px;margin-bottom:0;">
-            <label class="field-label">Remarks / Other Details</label>
-            <input type="text" id="otherDetails" class="field-input receipt-focus" placeholder="Any additional note…">
+          <div class="fg" style="margin-top:12px;margin-bottom:0;">
+            <label class="fl">Remarks</label>
+            <input type="text" id="otherDetails" class="fi rf" placeholder="Any additional note…">
           </div>
         </div>
       </div>
 
-      <!-- Row 2: Traveler(s) -->
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-header">
-          <span class="section-tag tag-receipt">👤 Traveler(s) &amp; Amount</span>
+      <div class="card">
+        <div class="card-hd">
+          <span class="stag stag-r">👤 Traveler(s) &amp; Amount</span>
           <div style="margin-left:auto;">
-            <div class="radio-pill-group">
-              <div class="radio-pill green"><input type="radio" name="isGroup" id="grpNo" value="no" checked onchange="toggleGroupMode()"><label for="grpNo">Single / Couple</label></div>
-              <div class="radio-pill green"><input type="radio" name="isGroup" id="grpYes" value="yes" onchange="toggleGroupMode()"><label for="grpYes">👥 Group Tour</label></div>
+            <div class="rpg">
+              <div class="rp g"><input type="radio" name="isGroup" id="grpNo"  value="no"  checked onchange="toggleGroup()"><label for="grpNo">Single / Couple</label></div>
+              <div class="rp g"><input type="radio" name="isGroup" id="grpYes" value="yes"         onchange="toggleGroup()"><label for="grpYes">👥 Group Tour</label></div>
             </div>
           </div>
         </div>
-        <div class="card-body">
-
-          <!-- Single traveler -->
-          <div id="singleTravelerBlock">
-            <div class="grid-2">
-              <div class="field-group">
-                <label class="field-label">Traveler Name <span class="req">*</span></label>
-                <input type="text" id="travelerOrGroupName" class="field-input receipt-focus" placeholder="Full name">
+        <div class="card-bd">
+          <div id="singleBlock">
+            <div class="g2">
+              <div class="fg"><label class="fl">Traveler Name <span class="req">*</span></label>
+                <input type="text" id="travelerOrGroupName" class="fi rf" placeholder="Full name">
               </div>
-              <div class="field-group">
-                <label class="field-label">Amount (₹) <span class="req">*</span></label>
-                <input type="number" id="totalAmount" class="field-input receipt-focus" placeholder="0.00" min="0" step="0.01">
+              <div class="fg"><label class="fl">Amount (₹) <span class="req">*</span></label>
+                <input type="number" id="totalAmount" class="fi rf" placeholder="0.00" min="0" step="0.01">
               </div>
             </div>
           </div>
 
-          <!-- Group traveler -->
-          <div id="groupTravelerBlock" class="hidden">
-            <div class="field-group">
-              <label class="field-label">Group / Tour Name <span class="req">*</span></label>
-              <input type="text" id="groupTourName" class="field-input receipt-focus" placeholder="e.g. Sharma Group – Goa 2025">
+          <div id="groupBlock" class="hidden">
+            <div class="fg"><label class="fl">Group / Tour Name <span class="req">*</span></label>
+              <input type="text" id="groupTourName" class="fi rf" placeholder="e.g. Sharma Group – Goa 2025">
             </div>
             <div id="groupMembersContainer"></div>
-            <div style="display:flex;align-items:center;gap:16px;margin-top:4px;">
-              <button type="button" class="add-row-btn green" id="addMemberBtn" onclick="addMemberRow()">＋ Add Member</button>
-              <span class="running-total" id="groupRunningTotal">Total: <span>₹0</span></span>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:4px;">
+              <button type="button" class="add-btn g" id="addMemberBtn" onclick="addMember()">＋ Add Member</button>
+              <span class="rtotal">Total: <span id="groupTotal">₹0</span></span>
             </div>
-            <p id="memberLimitMsg" class="hidden" style="font-size:.78rem;color:#ef4444;margin-top:6px;">Maximum 20 members reached.</p>
+            <p id="memberLimitMsg" class="hidden" style="font-size:.75rem;color:#ef4444;margin-top:6px;">Maximum 20 members reached.</p>
           </div>
-
         </div>
       </div>
 
     </div><!-- /travelerSection -->
 
 
-    <!-- ───── VENDOR PAYMENT SECTION ───── -->
+    <!-- ═══════ VENDOR SECTION ═══════ -->
     <div id="vendorSection" class="hidden">
 
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-header">
-          <span class="section-tag tag-payment">🔗 Tour Linkage</span>
-          <span style="margin-left:auto;font-size:.75rem;color:#6b7280;font-weight:500;">Link payment to a receipt Tour ID</span>
+      <div class="card">
+        <div class="card-hd">
+          <span class="stag stag-p">🔗 Tour Linkage &amp; Balance</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;font-weight:500;">Link this payment to a receipt Tour ID</span>
         </div>
-        <div class="card-body">
-          <div class="field-group">
-            <label class="field-label">Tour ID <span class="req">*</span>
-              <span style="font-weight:400;color:#6b7280;font-size:.72rem;">— must match the receipt Tour ID exactly</span>
+        <div class="card-bd">
+          <div class="fg">
+            <label class="fl">Tour ID <span class="req">*</span>
+              <span style="font-weight:400;color:#9ca3af;font-size:.7rem;"> — must match receipt exactly</span>
             </label>
-            <div class="tour-id-wrap">
-              <input type="text" id="vendorTourId" class="field-input payment-focus" placeholder="Type or select from history…" autocomplete="off" list="vendorTourIdList" oninput="checkVendorTourId()">
-              <datalist id="vendorTourIdList"></datalist>
+            <input type="text" id="vendorTourId" class="fi pf" placeholder="Type or pick from history below…" autocomplete="off" list="vendorTourIdDL" oninput="onVendorTourId()">
+            <datalist id="vendorTourIdDL"></datalist>
+
+            <!-- Recon messages -->
+            <div class="recon-msg warn" id="reconWarn">⚠️ No receipt found for this Tour ID on record. Confirm before submitting.</div>
+            <div class="recon-msg ok"   id="reconOk">✅ Receipt on record — Tour ID matched.</div>
+
+            <!-- ── BALANCE CARD ── -->
+            <div class="balance-card" id="balCard">
+              <div style="font-size:.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;" id="balTitle">Tour Balance</div>
+              <div class="bal-row">
+                <span class="bal-label">💰 Total Receipts from Travellers</span>
+                <span class="bal-value bal-green" id="balReceipts">₹0</span>
+              </div>
+              <div class="bal-row">
+                <span class="bal-label">🏪 Vendor Payments Made</span>
+                <span class="bal-value bal-red" id="balPayments">₹0</span>
+              </div>
+              <div class="bal-row bal-total">
+                <span style="font-weight:700;color:#111827;">Balance in Hand</span>
+                <span class="bal-value" id="balNet" style="font-size:1.05rem;">₹0</span>
+              </div>
+              <div id="balNote" style="font-size:.72rem;margin-top:8px;"></div>
             </div>
-            <!-- Reconciliation alert -->
-            <div class="recon-warn warn" id="reconWarn">
-              ⚠️ <span id="reconWarnText">This Tour ID has no receipt on record on this device. Please verify before submitting.</span>
-            </div>
-            <div class="recon-warn ok" id="reconOk">
-              ✅ <span>Tour ID matched — receipt on record. Reconciliation looks good.</span>
-            </div>
-            <div class="tour-chips" id="vendorTourChips"></div>
+
+            <!-- Chips -->
+            <div id="vChips" class="chips" style="margin-top:10px;"></div>
           </div>
-          <div class="field-group" style="margin-bottom:0;">
-            <label class="field-label">Remarks / Other Details</label>
-            <input type="text" id="vendorOtherDetails" class="field-input payment-focus" placeholder="Any additional note…">
+
+          <div class="fg" style="margin-bottom:0;">
+            <label class="fl">Remarks</label>
+            <input type="text" id="vendorOtherDetails" class="fi pf" placeholder="Any additional note…">
           </div>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:16px;">
-        <div class="card-header">
-          <span class="section-tag tag-payment">🏪 Vendor Services</span>
+      <div class="card">
+        <div class="card-hd">
+          <span class="stag stag-p">🏪 Vendor Services</span>
           <span style="margin-left:auto;font-size:.8rem;color:#6b7280;font-weight:600;" id="vendorTotalDisplay">Total: ₹0</span>
         </div>
-        <div class="card-body">
+        <div class="card-bd">
           <div id="vendorServicesContainer"></div>
-          <div style="display:flex;align-items:center;gap:16px;margin-top:4px;">
-            <button type="button" class="add-row-btn orange" id="addServiceBtn" onclick="addServiceRow()">＋ Add Service</button>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:4px;">
+            <button type="button" class="add-btn o" id="addServiceBtn" onclick="addService()">＋ Add Service</button>
           </div>
-          <p id="serviceLimitMsg" class="hidden" style="font-size:.78rem;color:#ef4444;margin-top:6px;">Maximum 20 services reached.</p>
+          <p id="serviceLimitMsg" class="hidden" style="font-size:.75rem;color:#ef4444;margin-top:6px;">Maximum 20 services reached.</p>
         </div>
       </div>
 
     </div><!-- /vendorSection -->
 
-
-    <!-- Submit -->
-    <button type="submit" class="submit-btn receipt" id="submitBtn">
-      Submit Receipt ₹ →
-    </button>
-    <div class="result-msg" id="resultMsg"></div>
+    <button type="submit" class="sub-btn r" id="submitBtn">Submit Receipt ₹ →</button>
+    <div class="result" id="resultMsg"></div>
 
   </form>
 </main>
 
 <div class="app-footer">Property of M/s Anurag Maheshwari &amp; Company · Dream Destination · Saharanpur</div>
-
 <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
 
-<!-- ═══════════════════ SCRIPT ═══════════════════ -->
 <script>
-// ── Constants ──
-const BACKEND = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
-const RECEIPT_KEY = 'paymentAppReceiptCounter';
-const TOUR_HISTORY_KEY = 'dreamDest_tourIdHistory';
-const MAX_MEMBERS = 20;
-const MAX_SERVICES = 20;
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+const BACKEND       = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
+const RECEIPT_KEY   = 'paymentAppReceiptCounter';
+const TOUR_HIST_KEY = 'dreamDest_tourIdHistory';
+const MAX_MEMBERS   = 20;
+const MAX_SERVICES  = 20;
+
+// ── Live data cache (fetched from Sheet via doGet) ──
+let liveData = {};     // { "GOA/SHARMA/GRP": { receipts:85000, payments:72000 }, … }
+let liveTourIds = [];  // sorted list
+let liveLoaded  = false;
 
 // ── State ──
-let currentMode = 'traveler'; // 'traveler' | 'vendor'
-let isGroupTour = false;
+let currentMode = 'traveler';
+let isGroupMode = false;
 let memberCount = 0;
 let serviceCount = 0;
 
-// ── Tour ID History (localStorage) ──
-function getTourHistory() {
-  try { return JSON.parse(localStorage.getItem(TOUR_HISTORY_KEY) || '[]'); }
-  catch(e) { return []; }
-}
-function saveTourId(id) {
-  if (!id || id.trim().length < 2) return;
-  const hist = getTourHistory();
-  const clean = id.trim().toUpperCase();
-  const updated = [clean, ...hist.filter(h => h !== clean)].slice(0, 30);
-  localStorage.setItem(TOUR_HISTORY_KEY, JSON.stringify(updated));
-}
-function refreshDatalistAndChips() {
-  const hist = getTourHistory();
-  // Traveler datalist
-  const dl1 = document.getElementById('tourIdList');
-  dl1.innerHTML = hist.map(h => `<option value="${h}">`).join('');
-  // Vendor datalist
-  const dl2 = document.getElementById('vendorTourIdList');
-  dl2.innerHTML = hist.map(h => `<option value="${h}">`).join('');
-  // Chips — traveler
-  const tc = document.getElementById('travelerTourChips');
-  tc.innerHTML = hist.slice(0,8).map(h => `<span class="tour-chip" onclick="selectTravelerTourId('${h}')">${h}</span>`).join('');
-  // Chips — vendor
-  const vc = document.getElementById('vendorTourChips');
-  vc.innerHTML = hist.slice(0,8).map(h => `<span class="tour-chip" onclick="selectVendorTourId('${h}')">${h}</span>`).join('');
-}
-function selectTravelerTourId(id) {
-  document.getElementById('tourId').value = id;
-  document.getElementById('tourIdClear').style.display = 'block';
-}
-function selectVendorTourId(id) {
-  document.getElementById('vendorTourId').value = id;
-  checkVendorTourId();
-}
-function clearTourId() {
-  document.getElementById('tourId').value = '';
-  document.getElementById('tourIdClear').style.display = 'none';
+// ═══════════════════════════════════════════════════════════════
+// FETCH LIVE DATA FROM SHEET
+// ═══════════════════════════════════════════════════════════════
+function fetchLiveData() {
+  setSyncState('loading', 'Loading sheet data…');
+  fetch(BACKEND, { redirect: 'follow' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        liveData    = data.tours   || {};
+        liveTourIds = data.tourIds || [];
+        liveLoaded  = true;
+        setSyncState('ok', `Sheet synced · ${liveTourIds.length} tours`);
+        populateDatalistsAndChips();
+      } else {
+        throw new Error(data.error || 'Unknown error');
+      }
+    })
+    .catch(err => {
+      console.warn('GET failed, using localStorage fallback:', err);
+      setSyncState('error', 'Sheet offline — using local history');
+      // Fall back to localStorage
+      const hist = getTourHist();
+      liveTourIds = hist;
+      liveData = {};
+      hist.forEach(id => { liveData[id] = null; }); // null = no balance data
+      populateDatalistsAndChips();
+    });
 }
 
-// Vendor Tour ID reconciliation check
-function checkVendorTourId() {
-  const val = document.getElementById('vendorTourId').value.trim().toUpperCase();
+function setSyncState(state, text) {
+  const pill = document.getElementById('syncPill');
+  const dot  = document.getElementById('syncDot');
+  const txt  = document.getElementById('syncText');
+  pill.className = 'sync-pill ' + (state === 'loading' ? 'loading' : state === 'ok' ? 'ok' : 'error');
+  dot.className  = 'sync-dot '  + (state === 'loading' ? 'pulse'   : state === 'ok' ? 'ok'   : 'err');
+  txt.textContent = text;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOUR ID HISTORY (localStorage fallback)
+// ═══════════════════════════════════════════════════════════════
+function getTourHist() {
+  try { return JSON.parse(localStorage.getItem(TOUR_HIST_KEY) || '[]'); } catch(e) { return []; }
+}
+function pushTourHist(id) {
+  if (!id || id.trim().length < 2) return;
+  const clean = id.trim().toUpperCase();
+  const hist  = [clean, ...getTourHist().filter(h => h !== clean)].slice(0, 40);
+  localStorage.setItem(TOUR_HIST_KEY, JSON.stringify(hist));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DATALISTS & CHIPS
+// ═══════════════════════════════════════════════════════════════
+function populateDatalistsAndChips() {
+  const ids = liveTourIds.length ? liveTourIds : getTourHist();
+
+  // datalists
+  ['tourIdDL','vendorTourIdDL'].forEach(dlId => {
+    const dl = document.getElementById(dlId);
+    if (dl) dl.innerHTML = ids.map(id => `<option value="${id}">`).join('');
+  });
+
+  // traveller chips — recent 8
+  renderChips('tChips', ids.slice(0,8), id => {
+    document.getElementById('tourId').value = id;
+  });
+
+  // vendor chips — recent 8
+  renderChips('vChips', ids.slice(0,8), id => {
+    document.getElementById('vendorTourId').value = id;
+    onVendorTourId();
+  });
+}
+
+function renderChips(containerId, ids, onClick) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!ids.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="chips-label">Recent tours</div>` +
+    ids.map(id => `<span class="chip" title="${id}">${id}</span>`).join('');
+  el.querySelectorAll('.chip').forEach((chip, i) => {
+    chip.addEventListener('click', () => onClick(ids[i]));
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// VENDOR TOUR ID — RECON CHECK + BALANCE DISPLAY
+// ═══════════════════════════════════════════════════════════════
+function onVendorTourId() {
+  const raw  = document.getElementById('vendorTourId').value.trim();
+  const val  = raw.toUpperCase();
   const warn = document.getElementById('reconWarn');
-  const ok = document.getElementById('reconOk');
+  const ok   = document.getElementById('reconOk');
+  const bc   = document.getElementById('balCard');
+
   warn.classList.remove('show');
   ok.classList.remove('show');
+  bc.classList.remove('show','healthy','warning','over');
+
   if (val.length < 2) return;
-  const hist = getTourHistory();
-  if (hist.includes(val)) {
+
+  const known = liveData.hasOwnProperty(val);
+
+  if (known) {
     ok.classList.add('show');
+    const d = liveData[val];
+    if (d && d.receipts !== undefined) {
+      showBalanceCard(val, d.receipts, d.payments);
+    }
   } else {
     warn.classList.add('show');
   }
 }
-document.getElementById('tourId').addEventListener('input', function() {
-  document.getElementById('tourIdClear').style.display = this.value ? 'block' : 'none';
-});
 
-// ── Mode Switch ──
+function fmt(n) {
+  return '₹' + (n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function showBalanceCard(tourId, receipts, payments) {
+  const net = receipts - payments;
+  const bc  = document.getElementById('balCard');
+
+  document.getElementById('balTitle').textContent    = `Tour: ${tourId}`;
+  document.getElementById('balReceipts').textContent = fmt(receipts);
+  document.getElementById('balPayments').textContent = fmt(payments);
+
+  const netEl = document.getElementById('balNet');
+  netEl.textContent = fmt(Math.abs(net));
+
+  const noteEl = document.getElementById('balNote');
+  if (net > 0) {
+    bc.className   = 'balance-card show healthy';
+    netEl.className = 'bal-value bal-green';
+    noteEl.innerHTML = `<span style="color:#059669;">✔ ₹${Math.abs(net).toLocaleString('en-IN')} still available — vendor payment within balance.</span>`;
+  } else if (net === 0) {
+    bc.className   = 'balance-card show healthy';
+    netEl.className = 'bal-value bal-blue';
+    noteEl.innerHTML = `<span style="color:#0369a1;">◉ Receipts exactly match payments — fully settled.</span>`;
+  } else {
+    bc.className   = 'balance-card show over';
+    netEl.className = 'bal-value bal-red';
+    noteEl.innerHTML = `<span style="color:#dc2626;">⚠ Vendor payments exceed receipts by ₹${Math.abs(net).toLocaleString('en-IN')} — check before submitting.</span>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MODE SWITCH
+// ═══════════════════════════════════════════════════════════════
 function switchMode(mode) {
   currentMode = mode;
-  const isTraveler = mode === 'traveler';
-  document.getElementById('travelerSection').classList.toggle('hidden', !isTraveler);
-  document.getElementById('vendorSection').classList.toggle('hidden', isTraveler);
-  document.getElementById('btnReceipt').className = 'mode-btn' + (isTraveler ? ' receipt-active' : '');
-  document.getElementById('btnPayment').className = 'mode-btn' + (!isTraveler ? ' payment-active' : '');
+  const isTrav = mode === 'traveler';
+  document.getElementById('travelerSection').classList.toggle('hidden', !isTrav);
+  document.getElementById('vendorSection').classList.toggle('hidden',   isTrav);
+  document.getElementById('btnR').className = 'mode-btn' + (isTrav  ? ' r-active' : '');
+  document.getElementById('btnP').className = 'mode-btn' + (!isTrav ? ' p-active' : '');
   const btn = document.getElementById('submitBtn');
-  btn.className = 'submit-btn ' + (isTraveler ? 'receipt' : 'payment');
-  btn.textContent = isTraveler ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
+  btn.className   = 'sub-btn ' + (isTrav ? 'r' : 'p');
+  btn.textContent = isTrav ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
   hideResult();
 }
 
-// ── Group Mode ──
-function toggleGroupMode() {
-  isGroupTour = document.getElementById('grpYes').checked;
-  document.getElementById('singleTravelerBlock').classList.toggle('hidden', isGroupTour);
-  document.getElementById('groupTravelerBlock').classList.toggle('hidden', !isGroupTour);
-  if (isGroupTour && memberCount === 0) addMemberRow();
+// ═══════════════════════════════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════════════════════════════
+function toggleBank() {
+  const v = document.querySelector('input[name="payMode"]:checked').value;
+  document.getElementById('bankRow').classList.toggle('hidden', v === 'cash');
+}
+function toggleGroup() {
+  isGroupMode = document.getElementById('grpYes').checked;
+  document.getElementById('singleBlock').classList.toggle('hidden',  isGroupMode);
+  document.getElementById('groupBlock').classList.toggle('hidden',  !isGroupMode);
+  if (isGroupMode && memberCount === 0) addMember();
 }
 
-// ── Payment Mode ──
-document.querySelectorAll('input[name="payMode"]').forEach(r => {
-  r.addEventListener('change', () => {
-    const isCash = r.value === 'cash';
-    document.getElementById('bankDetailsRow').classList.toggle('hidden', isCash);
-  });
-});
+// ── Receipt number ──
+function getReceiptNum() { return parseInt(localStorage.getItem(RECEIPT_KEY) || '1', 10) || 1; }
+function bumpReceipt()   { localStorage.setItem(RECEIPT_KEY, getReceiptNum() + 1); }
+function resetReceipt()  { if (!confirm('Reset receipt counter to 1?')) return; localStorage.setItem(RECEIPT_KEY,'1'); document.getElementById('receiptNumber').value = 1; }
+function refreshReceipt(){ document.getElementById('receiptNumber').value = getReceiptNum(); }
 
-// ── Receipt Number ──
-function getReceiptNum() {
-  return parseInt(localStorage.getItem(RECEIPT_KEY) || '1', 10) || 1;
-}
-function bumpReceiptNum() {
-  const n = getReceiptNum() + 1;
-  localStorage.setItem(RECEIPT_KEY, n);
-}
-function resetReceiptCounter() {
-  if (!confirm('Reset receipt counter to 1?')) return;
-  localStorage.setItem(RECEIPT_KEY, '1');
-  document.getElementById('receiptNumber').value = 1;
-}
-function refreshReceiptNum() {
-  document.getElementById('receiptNumber').value = getReceiptNum();
-}
-
-// ── Group Members ──
-function addMemberRow() {
+// ── Group members ──
+function addMember() {
   if (memberCount >= MAX_MEMBERS) return;
   memberCount++;
   const idx = memberCount;
-  const div = document.createElement('div');
-  div.className = 'member-row';
-  div.id = `memberRow${idx}`;
   const today = new Date().toISOString().split('T')[0];
+  const div = document.createElement('div');
+  div.className = 'mrow'; div.id = `mrow${idx}`;
   div.innerHTML = `
-    <div class="member-row-header">
-      <span class="member-badge">Member ${idx}</span>
-      <button type="button" class="remove-btn" onclick="removeMemberRow(${idx})">✕ Remove</button>
+    <div class="row-hd">
+      <span class="badge-m">Member ${idx}</span>
+      <button type="button" class="rm-btn" onclick="removeMember(${idx})">✕ Remove</button>
     </div>
-    <div class="grid-2">
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Name ${idx===1?'<span class="req">*</span>':''}</label>
-        <input type="text" id="gName${idx}" name="groupName${idx}" class="field-input receipt-focus" placeholder="Traveler name">
+    <div class="g2">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Name ${idx===1?'<span class="req">*</span>':''}</label>
+        <input type="text" id="gN${idx}" name="groupName${idx}" class="fi rf" placeholder="Traveler name">
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Amount (₹) ${idx===1?'<span class="req">*</span>':''}</label>
-        <input type="number" id="gAmt${idx}" name="groupAmount${idx}" class="field-input receipt-focus" placeholder="0.00" min="0" step="0.01" oninput="updateGroupTotal()">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Amount (₹) ${idx===1?'<span class="req">*</span>':''}</label>
+        <input type="number" id="gA${idx}" name="groupAmount${idx}" class="fi rf" placeholder="0.00" min="0" step="0.01" oninput="calcGroupTotal()">
       </div>
     </div>
-    <div class="grid-2" style="margin-top:8px;">
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Date</label>
-        <input type="date" id="gDate${idx}" name="groupDate${idx}" class="field-input receipt-focus" value="${today}">
+    <div class="g2" style="margin-top:8px;">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Date</label>
+        <input type="date" id="gD${idx}" name="groupDate${idx}" class="fi rf" value="${today}">
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Bank / Mode</label>
-        <input type="text" id="gBank${idx}" name="groupBank${idx}" class="field-input receipt-focus" placeholder="Cash / HDFC / UPI…">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Bank / Mode</label>
+        <input type="text" id="gB${idx}" name="groupBank${idx}" class="fi rf" placeholder="Cash / UPI / HDFC…">
       </div>
     </div>`;
   document.getElementById('groupMembersContainer').appendChild(div);
-  if (memberCount >= MAX_MEMBERS) {
-    document.getElementById('addMemberBtn').classList.add('hidden');
-    document.getElementById('memberLimitMsg').classList.remove('hidden');
-  }
+  if (memberCount >= MAX_MEMBERS) { document.getElementById('addMemberBtn').classList.add('hidden'); document.getElementById('memberLimitMsg').classList.remove('hidden'); }
 }
-function removeMemberRow(idx) {
-  const el = document.getElementById(`memberRow${idx}`);
+function removeMember(idx) {
+  const el = document.getElementById(`mrow${idx}`);
   if (el) el.remove();
-  updateGroupTotal();
+  calcGroupTotal();
 }
-function updateGroupTotal() {
-  let total = 0;
-  document.querySelectorAll('[id^="gAmt"]').forEach(i => {
-    const v = parseFloat(i.value);
-    if (!isNaN(v)) total += v;
-  });
-  document.getElementById('groupRunningTotal').innerHTML = `Total: <span>₹${total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>`;
+function calcGroupTotal() {
+  let t = 0;
+  document.querySelectorAll('[id^="gA"]').forEach(i => { const v = parseFloat(i.value); if (!isNaN(v)) t += v; });
+  document.getElementById('groupTotal').textContent = fmt(t);
 }
 
-// ── Vendor Services ──
-const SERVICE_TYPES = ['Air Service','Hotel / Accommodation','VISA','Transportation','Sightseeing','Train / Rail','Cruise','Insurance','Car Rental','Other / Custom'];
-const PAYMENT_METHODS = ['Cash','Bank Transfer','Cheque','UPI','Credit Card','Other'];
+// ── Vendor services ──
+const SVC_TYPES = ['Air Service','Hotel / Accommodation','VISA','Transportation','Sightseeing','Train / Rail','Cruise','Insurance','Car Rental','Other / Custom'];
+const PAY_METHS = ['Cash','Bank Transfer','Cheque','UPI','Credit Card','Other'];
 
-function addServiceRow() {
+function addService() {
   if (serviceCount >= MAX_SERVICES) return;
   serviceCount++;
-  const idx = serviceCount;
-  const div = document.createElement('div');
-  div.className = 'service-row';
-  div.id = `serviceRow${idx}`;
+  const idx   = serviceCount;
   const today = new Date().toISOString().split('T')[0];
-  const stOpts = SERVICE_TYPES.map(s => `<option value="${s}">${s}</option>`).join('');
-  const pmOpts = PAYMENT_METHODS.map(m => `<option value="${m}">${m}</option>`).join('');
+  const div   = document.createElement('div');
+  div.className = 'srow'; div.id = `srow${idx}`;
+  const stOpts = SVC_TYPES.map(s => `<option value="${s}">${s}</option>`).join('');
+  const pmOpts = PAY_METHS.map(m => `<option value="${m}">${m}</option>`).join('');
   div.innerHTML = `
-    <div class="service-row-header">
-      <span class="service-badge">Service ${idx}</span>
-      <button type="button" class="remove-btn" onclick="removeServiceRow(${idx})">✕ Remove</button>
+    <div class="row-hd">
+      <span class="badge-s">Service ${idx}</span>
+      <button type="button" class="rm-btn" onclick="removeService(${idx})">✕ Remove</button>
     </div>
-    <div class="grid-3">
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Service Type <span class="req">*</span></label>
-        <select id="sType${idx}" name="serviceType${idx}" class="field-input payment-focus"><option value="">Select…</option>${stOpts}</select>
+    <div class="g3">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Service Type <span class="req">*</span></label>
+        <select id="sT${idx}" name="serviceType${idx}" class="fi pf"><option value="">Select…</option>${stOpts}</select>
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Vendor Name <span class="req">*</span></label>
-        <input type="text" id="sVendor${idx}" name="vendorName${idx}" class="field-input payment-focus" placeholder="Vendor / supplier name">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Vendor Name <span class="req">*</span></label>
+        <input type="text" id="sV${idx}" name="vendorName${idx}" class="fi pf" placeholder="Vendor / supplier">
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Date</label>
-        <input type="date" id="sDate${idx}" name="serviceDate${idx}" class="field-input payment-focus" value="${today}">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Date</label>
+        <input type="date" id="sD${idx}" name="serviceDate${idx}" class="fi pf" value="${today}">
       </div>
     </div>
-    <div class="grid-3" style="margin-top:8px;">
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Amount (₹) <span class="req">*</span></label>
-        <input type="number" id="sAmt${idx}" name="serviceAmount${idx}" class="field-input payment-focus" placeholder="0.00" min="0" step="0.01" oninput="updateVendorTotal()">
+    <div class="g3" style="margin-top:8px;">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Amount (₹) <span class="req">*</span></label>
+        <input type="number" id="sA${idx}" name="serviceAmount${idx}" class="fi pf" placeholder="0.00" min="0" step="0.01" oninput="calcVendorTotal()">
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Payment Method</label>
-        <select id="sPm${idx}" name="paymentMethod${idx}" class="field-input payment-focus"><option value="">Select…</option>${pmOpts}</select>
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Payment Method</label>
+        <select id="sP${idx}" name="paymentMethod${idx}" class="fi pf"><option value="">Select…</option>${pmOpts}</select>
       </div>
-      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Bank / Txn Details</label>
-        <input type="text" id="sTxn${idx}" name="bankTxnDetails${idx}" class="field-input payment-focus" placeholder="UPI ID / Txn No…">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Bank / Txn Details</label>
+        <input type="text" id="sX${idx}" name="bankTxnDetails${idx}" class="fi pf" placeholder="UPI ID / Txn No / Cheque No">
       </div>
     </div>`;
   document.getElementById('vendorServicesContainer').appendChild(div);
-  if (serviceCount >= MAX_SERVICES) {
-    document.getElementById('addServiceBtn').classList.add('hidden');
-    document.getElementById('serviceLimitMsg').classList.remove('hidden');
-  }
+  if (serviceCount >= MAX_SERVICES) { document.getElementById('addServiceBtn').classList.add('hidden'); document.getElementById('serviceLimitMsg').classList.remove('hidden'); }
 }
-function removeServiceRow(idx) {
-  const el = document.getElementById(`serviceRow${idx}`);
-  if (el) { el.remove(); updateVendorTotal(); }
-  if (document.querySelectorAll('[id^="serviceRow"]').length === 0) addServiceRow();
+function removeService(idx) {
+  const el = document.getElementById(`srow${idx}`);
+  if (el) { el.remove(); calcVendorTotal(); }
+  if (!document.querySelectorAll('[id^="srow"]').length) addService();
 }
-function updateVendorTotal() {
-  let total = 0;
-  document.querySelectorAll('[id^="sAmt"]').forEach(i => {
-    const v = parseFloat(i.value);
-    if (!isNaN(v)) total += v;
-  });
-  document.getElementById('vendorTotalDisplay').textContent = `Total: ₹${total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+function calcVendorTotal() {
+  let t = 0;
+  document.querySelectorAll('[id^="sA"]').forEach(i => { const v = parseFloat(i.value); if (!isNaN(v)) t += v; });
+  document.getElementById('vendorTotalDisplay').textContent = `Total: ${fmt(t)}`;
 }
 
-// ── UI Helpers ──
+// ── Result display ──
 function showResult(msg, type) {
   const el = document.getElementById('resultMsg');
-  el.textContent = msg;
-  el.className = `result-msg show ${type}`;
+  el.textContent = msg; el.className = `result show ${type}`;
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
-function hideResult() {
-  document.getElementById('resultMsg').className = 'result-msg';
-}
+function hideResult() { document.getElementById('resultMsg').className = 'result'; }
 
-// ── Form Submit ──
+// ═══════════════════════════════════════════════════════════════
+// FORM SUBMIT
+// ═══════════════════════════════════════════════════════════════
 document.getElementById('mainForm').addEventListener('submit', function(e) {
   e.preventDefault();
   hideResult();
@@ -635,87 +672,79 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
   btn.disabled = true;
   btn.textContent = 'Submitting…';
 
-  let payload = { company: 'Anurag Maheshwari and Company', type: currentMode };
+  const payload = { company: 'Anurag Maheshwari and Company', type: currentMode };
 
+  // ── BUILD PAYLOAD ──
   if (currentMode === 'traveler') {
     const tid = document.getElementById('tourId').value.trim();
-    if (!tid) { showResult('Tour ID is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
-    payload.tourId = tid;
-    payload.entryDate = document.getElementById('entryDate').value;
+    if (!tid) { showResult('Tour ID is required.', 'error'); btn.disabled = false; btn.textContent = 'Submit Receipt ₹ →'; return; }
+    payload.tourId        = tid.toUpperCase();
+    payload.entryDate     = document.getElementById('entryDate').value;
     payload.paymentStatus = document.getElementById('paymentStatusTraveler').value;
-    const payMode = document.querySelector('input[name="payMode"]:checked').value;
-    payload.paymentMode = payMode;
-    payload.paymentType = document.getElementById('paymentType').value;
-    payload.bankName = document.getElementById('bankName').value;
-    payload.otherDetails = document.getElementById('otherDetails').value;
+    payload.paymentMode   = document.querySelector('input[name="payMode"]:checked').value;
+    payload.paymentType   = document.getElementById('paymentType').value;
+    payload.bankName      = document.getElementById('bankName').value;
+    payload.otherDetails  = document.getElementById('otherDetails').value;
     payload.receiptNumber = document.getElementById('receiptNumber').value;
 
-    if (isGroupTour) {
+    if (isGroupMode) {
       payload.isGroupTour = true;
-      payload.groupName = document.getElementById('groupTourName').value;
+      payload.groupName   = document.getElementById('groupTourName').value;
       payload.groupMembers = [];
-      let totalAmt = 0;
-      let valid = true;
-      document.querySelectorAll('[id^="memberRow"]').forEach((row, i) => {
-        const ridx = row.id.replace('memberRow','');
-        const name = (document.getElementById(`gName${ridx}`) || {}).value || '';
-        const amt  = (document.getElementById(`gAmt${ridx}`) || {}).value || '';
-        const date = (document.getElementById(`gDate${ridx}`) || {}).value || '';
-        const bank = (document.getElementById(`gBank${ridx}`) || {}).value || '';
-        if (name || amt) {
-          if (!name || isNaN(parseFloat(amt))) {
-            showResult(`Member ${i+1}: provide both Name and Amount.`, 'error');
-            valid = false; return;
-          }
-          payload.groupMembers.push({ name, amount: parseFloat(amt), date, bank });
-          totalAmt += parseFloat(amt);
+      let totalAmt = 0; let valid = true;
+      document.querySelectorAll('[id^="mrow"]').forEach((row, i) => {
+        const ri = row.id.replace('mrow','');
+        const nm = (document.getElementById(`gN${ri}`) || {}).value || '';
+        const am = (document.getElementById(`gA${ri}`) || {}).value || '';
+        const dt = (document.getElementById(`gD${ri}`) || {}).value || '';
+        const bk = (document.getElementById(`gB${ri}`) || {}).value || '';
+        if (nm || am) {
+          if (!nm || isNaN(parseFloat(am))) { showResult(`Member ${i+1}: provide both Name and Amount.`, 'error'); valid = false; return; }
+          payload.groupMembers.push({ name: nm, amount: parseFloat(am), date: dt, bank: bk });
+          totalAmt += parseFloat(am);
         }
       });
-      if (!valid) { btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
-      if (!payload.groupMembers.length) { showResult('Add at least one group member.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+      if (!valid) { btn.disabled = false; btn.textContent = 'Submit Receipt ₹ →'; return; }
+      if (!payload.groupMembers.length) { showResult('Add at least one group member.', 'error'); btn.disabled = false; btn.textContent = 'Submit Receipt ₹ →'; return; }
       payload.totalAmount = totalAmt;
     } else {
       payload.isGroupTour = false;
-      const name = document.getElementById('travelerOrGroupName').value.trim();
-      const amt  = document.getElementById('totalAmount').value;
-      if (!name) { showResult('Traveler Name is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
-      if (!amt || isNaN(parseFloat(amt))) { showResult('Amount is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
-      payload.travelerOrGroupName = name;
-      payload.totalAmount = parseFloat(amt);
+      const nm = document.getElementById('travelerOrGroupName').value.trim();
+      const am = document.getElementById('totalAmount').value;
+      if (!nm) { showResult('Traveler Name is required.', 'error'); btn.disabled = false; btn.textContent = 'Submit Receipt ₹ →'; return; }
+      if (!am || isNaN(parseFloat(am))) { showResult('Amount is required.', 'error'); btn.disabled = false; btn.textContent = 'Submit Receipt ₹ →'; return; }
+      payload.travelerOrGroupName = nm;
+      payload.totalAmount = parseFloat(am);
     }
 
   } else { // vendor
     const tid = document.getElementById('vendorTourId').value.trim();
-    if (!tid) { showResult('Tour ID is required for reconciliation.', 'error'); btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
-    payload.tourId = tid;
+    if (!tid) { showResult('Tour ID is required for reconciliation.', 'error'); btn.disabled = false; btn.textContent = 'Submit Vendor Payment ₹ →'; return; }
+    payload.tourId       = tid.toUpperCase();
     payload.otherDetails = document.getElementById('vendorOtherDetails').value;
-    payload.services = [];
-    let totalAmt = 0;
-    let valid = true;
+    payload.services     = [];
+    let totalAmt = 0; let valid = true;
 
-    document.querySelectorAll('[id^="serviceRow"]').forEach((row, i) => {
-      const ridx = row.id.replace('serviceRow','');
-      const sType  = (document.getElementById(`sType${ridx}`) || {}).value || '';
-      const vendor = (document.getElementById(`sVendor${ridx}`) || {}).value || '';
-      const date   = (document.getElementById(`sDate${ridx}`) || {}).value || '';
-      const amt    = (document.getElementById(`sAmt${ridx}`) || {}).value || '';
-      const pm     = (document.getElementById(`sPm${ridx}`) || {}).value || '';
-      const txn    = (document.getElementById(`sTxn${ridx}`) || {}).value || '';
-      if (sType || vendor || amt) {
-        if (!sType || !vendor || isNaN(parseFloat(amt))) {
-          showResult(`Service ${i+1}: Service Type, Vendor Name and Amount are required.`, 'error');
-          valid = false; return;
-        }
-        payload.services.push({ serviceType: sType, vendorName: vendor, date, amount: parseFloat(amt), paymentMethod: pm, bankTxnDetails: txn });
-        totalAmt += parseFloat(amt);
+    document.querySelectorAll('[id^="srow"]').forEach((row, i) => {
+      const ri = row.id.replace('srow','');
+      const st = (document.getElementById(`sT${ri}`) || {}).value || '';
+      const sv = (document.getElementById(`sV${ri}`) || {}).value || '';
+      const sd = (document.getElementById(`sD${ri}`) || {}).value || '';
+      const sa = (document.getElementById(`sA${ri}`) || {}).value || '';
+      const sp = (document.getElementById(`sP${ri}`) || {}).value || '';
+      const sx = (document.getElementById(`sX${ri}`) || {}).value || '';
+      if (st || sv || sa) {
+        if (!st || !sv || isNaN(parseFloat(sa))) { showResult(`Service ${i+1}: Service Type, Vendor Name and Amount are required.`, 'error'); valid = false; return; }
+        payload.services.push({ serviceType: st, vendorName: sv, date: sd, amount: parseFloat(sa), paymentMethod: sp, bankTxnDetails: sx });
+        totalAmt += parseFloat(sa);
       }
     });
-    if (!valid) { btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
-    if (!payload.services.length) { showResult('Add at least one vendor service.', 'error'); btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
+    if (!valid) { btn.disabled = false; btn.textContent = 'Submit Vendor Payment ₹ →'; return; }
+    if (!payload.services.length) { showResult('Add at least one vendor service.', 'error'); btn.disabled = false; btn.textContent = 'Submit Vendor Payment ₹ →'; return; }
     payload.totalAmount = totalAmt;
   }
 
-  // ── iframe submission ──
+  // ── IFRAME SUBMIT (same as original — no CORS issues) ──
   const form = document.createElement('form');
   form.action = BACKEND; form.method = 'POST'; form.target = 'hiddenIframe'; form.style.display = 'none';
   const inp = document.createElement('input');
@@ -725,7 +754,7 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
   const iframe = document.getElementById('hiddenIframe');
   iframe.onload = null;
   const timeout = setTimeout(() => {
-    showResult('Submission timed out. Please check the Google Sheet.', 'warning');
+    showResult('Submission timed out. Please verify in the Google Sheet.', 'warning');
     btn.disabled = false;
     btn.textContent = currentMode === 'traveler' ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
     document.body.removeChild(form);
@@ -734,14 +763,18 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
   iframe.onload = () => {
     clearTimeout(timeout);
     try {
-      // Save tour ID to history on successful traveler submission
+      // ── Post-submit: update local history + refresh live data ──
+      pushTourHist(payload.tourId);
+
       if (currentMode === 'traveler') {
-        saveTourId(payload.tourId);
-        bumpReceiptNum(); refreshReceiptNum();
-        refreshDatalistAndChips();
-        // Reset form
+        bumpReceipt(); refreshReceipt();
+        // optimistically update liveData so balance card reflects new receipt immediately
+        if (!liveData[payload.tourId]) liveData[payload.tourId] = { receipts: 0, payments: 0 };
+        if (liveData[payload.tourId]) liveData[payload.tourId].receipts += payload.totalAmount;
+        if (!liveTourIds.includes(payload.tourId)) liveTourIds.unshift(payload.tourId);
+        populateDatalistsAndChips();
+        // Reset traveler form
         document.getElementById('tourId').value = '';
-        document.getElementById('tourIdClear').style.display = 'none';
         document.getElementById('travelerOrGroupName').value = '';
         document.getElementById('totalAmount').value = '';
         document.getElementById('otherDetails').value = '';
@@ -750,34 +783,38 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
         document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
         document.getElementById('paymentStatusTraveler').value = 'advance';
         document.getElementById('pmCash').checked = true;
-        document.getElementById('bankDetailsRow').classList.add('hidden');
+        document.getElementById('bankRow').classList.add('hidden');
         document.getElementById('grpNo').checked = true;
-        isGroupTour = false;
-        document.getElementById('singleTravelerBlock').classList.remove('hidden');
-        document.getElementById('groupTravelerBlock').classList.add('hidden');
+        isGroupMode = false;
+        document.getElementById('singleBlock').classList.remove('hidden');
+        document.getElementById('groupBlock').classList.add('hidden');
         document.getElementById('groupMembersContainer').innerHTML = '';
         memberCount = 0;
         document.getElementById('addMemberBtn').classList.remove('hidden');
         document.getElementById('memberLimitMsg').classList.add('hidden');
-        showResult('✅ Receipt recorded successfully! Sheet updated.', 'success');
+        showResult('✅ Receipt recorded successfully! Google Sheet updated.', 'success');
       } else {
-        // Vendor: save tour id too so future entries can find it
-        saveTourId(payload.tourId);
-        refreshDatalistAndChips();
+        // optimistically update liveData for vendor payment
+        if (!liveData[payload.tourId]) liveData[payload.tourId] = { receipts: 0, payments: 0 };
+        if (liveData[payload.tourId]) liveData[payload.tourId].payments += payload.totalAmount;
+        populateDatalistsAndChips();
         // Reset vendor form
         document.getElementById('vendorTourId').value = '';
         document.getElementById('vendorOtherDetails').value = '';
         document.getElementById('reconWarn').classList.remove('show');
         document.getElementById('reconOk').classList.remove('show');
+        document.getElementById('balCard').className = 'balance-card';
         document.getElementById('vendorServicesContainer').innerHTML = '';
         serviceCount = 0;
         document.getElementById('addServiceBtn').classList.remove('hidden');
         document.getElementById('serviceLimitMsg').classList.add('hidden');
-        addServiceRow();
-        showResult('✅ Vendor payment recorded successfully! Sheet updated.', 'success');
+        addService();
+        showResult('✅ Vendor payment recorded successfully! Google Sheet updated.', 'success');
       }
+      // Refresh live data from sheet after 3s
+      setTimeout(fetchLiveData, 3000);
     } catch(err) {
-      showResult('Submitted (response unconfirmed). Please verify in Google Sheet.', 'warning');
+      showResult('Submitted — please verify in Google Sheet.', 'warning');
     } finally {
       btn.disabled = false;
       btn.textContent = currentMode === 'traveler' ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
@@ -786,12 +823,14 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
   };
 });
 
-// ── Init ──
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-  refreshReceiptNum();
-  refreshDatalistAndChips();
-  addServiceRow(); // default one vendor service row
+  refreshReceipt();
+  addService();         // default first service row
+  fetchLiveData();      // pull live tour IDs + balances from Sheet
 });
 </script>
 </body>
