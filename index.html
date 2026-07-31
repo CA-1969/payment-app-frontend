@@ -1,963 +1,798 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Management System</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f3f4f6; /* Light gray background */
-        }
-        /* Custom styles for better focus and aesthetics */
-        input:focus, select:focus, button:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45); /* Tailwind's blue-500 with opacity */
-        }
-        .tour-destination-image {
-            width: 120px; /* Increased image size */
-            height: 120px;
-            border-radius: 8px; /* Rounded corners */
-            object-fit: cover;
-            display: none; /* Hidden by default */
-            margin-left: 1.5rem; /* Increased spacing from input */
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* More prominent shadow */
-            border: 2px solid #cbd5e1; /* Light border */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dream Destination – Payment Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --receipt-green: #059669;
+      --payment-red: #dc2626;
+      --sky: #0369a1;
+      --sky-light: #e0f2fe;
+      --amber: #d97706;
+      --amber-light: #fef3c7;
+      --card-shadow: 0 4px 24px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+    /* ── Header ── */
+    .app-header {
+      background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 50%, #0ea5e9 100%);
+      padding: 0;
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 2px 12px rgba(3,105,161,.4);
+    }
+    .header-inner { max-width: 860px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    .brand-name { font-size: 1.35rem; font-weight: 800; color: #fff; letter-spacing: .5px; }
+    .brand-sub  { font-size: .7rem; color: #bae6fd; font-weight: 500; letter-spacing: 1px; text-transform: uppercase; }
+    .header-badge { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 4px 12px; font-size: .72rem; color: #e0f2fe; font-weight: 600; }
+
+    /* ── Mode Toggle ── */
+    .mode-toggle { display: flex; border-radius: 14px; overflow: hidden; border: 2px solid #e2e8f0; background: #fff; box-shadow: var(--card-shadow); }
+    .mode-btn { flex: 1; padding: 12px 24px; font-size: .875rem; font-weight: 600; cursor: pointer; border: none; background: transparent; transition: all .2s; position: relative; }
+    .mode-btn.receipt-active { background: var(--receipt-green); color: #fff; }
+    .mode-btn.payment-active { background: var(--payment-red); color: #fff; }
+    .mode-btn:not(.receipt-active):not(.payment-active) { color: #64748b; }
+    .mode-btn .mode-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+
+    /* ── Cards ── */
+    .card { background: #fff; border-radius: 16px; box-shadow: var(--card-shadow); border: 1px solid #e8edf2; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px; }
+    .card-body { padding: 20px; }
+    .section-tag { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
+    .tag-receipt { background: #d1fae5; color: #065f46; }
+    .tag-payment { background: #fee2e2; color: #991b1b; }
+
+    /* ── Form Fields ── */
+    .field-label { display: block; font-size: .8rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+    .field-label .req { color: #ef4444; }
+    .field-input {
+      width: 100%; height: 40px; padding: 0 12px;
+      border: 1.5px solid #d1d5db; border-radius: 10px;
+      font-size: .875rem; color: #111827;
+      background: #fff; transition: border .15s, box-shadow .15s;
+      outline: none;
+    }
+    .field-input:focus { border-color: #0369a1; box-shadow: 0 0 0 3px rgba(3,105,161,.12); }
+    .field-input.receipt-focus:focus { border-color: var(--receipt-green); box-shadow: 0 0 0 3px rgba(5,150,105,.12); }
+    .field-input.payment-focus:focus { border-color: var(--payment-red); box-shadow: 0 0 0 3px rgba(220,38,38,.12); }
+    .field-input[readonly] { background: #f8fafc; color: #6b7280; }
+    select.field-input { cursor: pointer; }
+    .field-group { margin-bottom: 14px; }
+
+    /* ── Tour ID input with history ── */
+    .tour-id-wrap { position: relative; }
+    .tour-id-wrap input { padding-right: 36px; }
+    .tour-id-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9ca3af; font-size: 1rem; display: none; }
+    .tour-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .tour-chip {
+      font-size: .72rem; font-weight: 600; padding: 3px 10px;
+      border-radius: 20px; cursor: pointer; border: 1.5px solid #d1d5db;
+      color: #374151; background: #f8fafc; transition: all .15s;
+      white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .tour-chip:hover { border-color: #0369a1; color: #0369a1; background: #eff6ff; }
+
+    /* ── Reconciliation warning ── */
+    .recon-warn { display: none; align-items: flex-start; gap: 8px; padding: 10px 14px; border-radius: 10px; font-size: .8rem; font-weight: 500; margin-top: 8px; }
+    .recon-warn.show { display: flex; }
+    .recon-warn.warn { background: #fef3c7; border: 1.5px solid #fbbf24; color: #92400e; }
+    .recon-warn.ok   { background: #d1fae5; border: 1.5px solid #6ee7b7; color: #065f46; }
+
+    /* ── Radio Pill ── */
+    .radio-pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .radio-pill { position: relative; }
+    .radio-pill input[type=radio] { position: absolute; opacity: 0; width: 0; }
+    .radio-pill label {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 16px; border-radius: 20px;
+      border: 1.5px solid #d1d5db; font-size: .8rem; font-weight: 600;
+      cursor: pointer; transition: all .15s; color: #6b7280; background: #f8fafc;
+    }
+    .radio-pill input:checked + label { border-color: #0369a1; color: #0369a1; background: #eff6ff; }
+    .radio-pill.green input:checked + label { border-color: var(--receipt-green); color: var(--receipt-green); background: #d1fae5; }
+
+    /* ── Group member row ── */
+    .member-row { background: #f8fafc; border: 1px solid #e8edf2; border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative; }
+    .member-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .member-badge { font-size: .7rem; font-weight: 700; background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 20px; }
+    .remove-btn { font-size: .72rem; font-weight: 600; color: #ef4444; cursor: pointer; background: none; border: none; padding: 2px 6px; }
+    .remove-btn:hover { color: #b91c1c; }
+
+    /* ── Vendor service row ── */
+    .service-row { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .service-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .service-badge { font-size: .7rem; font-weight: 700; background: #ffedd5; color: #9a3412; padding: 2px 8px; border-radius: 20px; }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid #f1f5f9; margin: 16px 0; }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%; padding: 14px;
+      border: none; border-radius: 12px; cursor: pointer;
+      font-size: 1rem; font-weight: 700; letter-spacing: .3px;
+      transition: all .2s; position: relative; overflow: hidden;
+    }
+    .submit-btn.receipt { background: linear-gradient(135deg, #059669, #10b981); color: #fff; box-shadow: 0 4px 14px rgba(5,150,105,.3); }
+    .submit-btn.payment { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; box-shadow: 0 4px 14px rgba(220,38,38,.3); }
+    .submit-btn:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+    .submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+    /* ── Result message ── */
+    .result-msg { display: none; padding: 12px 16px; border-radius: 10px; font-size: .875rem; font-weight: 500; text-align: center; margin-top: 14px; }
+    .result-msg.show { display: block; }
+    .result-msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .result-msg.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .result-msg.warning { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+    /* ── Add row button ── */
+    .add-row-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 10px; cursor: pointer;
+      font-size: .8rem; font-weight: 600; border: 1.5px dashed;
+      background: transparent; transition: all .15s;
+    }
+    .add-row-btn.green { border-color: var(--receipt-green); color: var(--receipt-green); }
+    .add-row-btn.green:hover { background: #d1fae5; }
+    .add-row-btn.orange { border-color: #ea580c; color: #ea580c; }
+    .add-row-btn.orange:hover { background: #ffedd5; }
+
+    /* ── Amount display ── */
+    .running-total { font-size: .8rem; font-weight: 600; color: #6b7280; margin-top: 6px; }
+    .running-total span { color: #0369a1; font-size: .9rem; }
+
+    /* ── Receipt number badge ── */
+    .receipt-num-badge { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 700; background: #eff6ff; color: #1e40af; padding: 6px 14px; border-radius: 20px; border: 1.5px solid #bfdbfe; }
+
+    /* ── Footer ── */
+    .app-footer { text-align: center; padding: 20px; font-size: .72rem; color: #9ca3af; }
+
+    /* Utilities */
+    .hidden { display: none !important; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .mode-btn { padding: 10px 10px; font-size: .78rem; }
+    }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-8">
+<body>
 
-    <div class="w-full max-w-5xl">
-        <!-- Header Card -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 mb-6 overflow-hidden">
-            <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-t-xl">
-                <h2 class="text-3xl font-extrabold text-center">Payment Management System</h2>
-                <p class="text-blue-100 text-center mt-2 text-md">v14.0 - Traveler & Vendor Payments</p>
-            </div>
-        </div>
-
-        <!-- CA Logo and Static Company Name -->
-        <div class="flex items-center justify-center gap-2 mb-4">
-            <!-- CA Logo: Updated to use the uploaded PNG file, with adjusted sizing -->
-            <img src="https://content.googleapis.com/v1/files/uploaded:CA_India_Logo.png-3730ebe2-d07-4775-abbd-9e203964f871?alt=media" alt="CA INDIA Logo" class="max-h-12 max-w-24 object-contain border border-gray-300 rounded-lg">
-            <p class="text-center text-gray-600 text-sm font-bold">Property: Anurag Maheshwari and Company</p>
-        </div>
-
-        <!-- Main Form Card -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div class="p-6">
-                <form id="paymentForm" class="space-y-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <!-- Radio Group for Form Type -->
-                            <div class="flex space-x-6 justify-center md:justify-start" id="formTypeRadioGroup">
-                                <div class="flex items-center space-x-2">
-                                    <input type="radio" id="traveler" name="formType" value="traveler" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                                    <label for="traveler" class="text-base font-medium text-gray-700">Traveler Payment</label>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <input type="radio" id="vendor" name="formType" value="vendor" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500">
-                                    <label for="vendor" class="text-base font-medium text-gray-700">Vendor Payment</label>
-                                </div>
-                            </div>
-
-                            <div class="space-y-4">
-                                <!-- Traveler Fields -->
-                                <div id="travelerFields" class="space-y-4">
-                                    <div class="space-y-2">
-                                        <label for="tourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
-                                        <div class="flex items-center">
-                                            <input type="text" id="tourId" name="tourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                            <img id="tourDestinationImage" class="tour-destination-image" alt="Destination Image">
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Payment Status Dropdown for Traveler -->
-                                    <div class="space-y-2">
-                                        <label for="paymentStatusTraveler" class="text-sm font-medium leading-none">Payment Status <span class="text-red-500">*</span></label>
-                                        <select id="paymentStatusTraveler" name="paymentStatusTraveler" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                            <option value="advance">Advance</option>
-                                            <option value="partial">Partial</option>
-                                            <option value="full">Full</option>
-                                        </select>
-                                    </div>
-
-                                    <!-- Is Group Tour? -->
-                                    <div class="space-y-2">
-                                        <label class="text-sm font-medium leading-none">Is Group Tour?</label>
-                                        <div class="flex space-x-4" id="isGroupTourRadioGroup">
-                                            <div class="flex items-center space-x-2">
-                                                <input type="radio" id="groupNo" name="isGroupTour" value="no" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                                                <label for="groupNo" class="text-base font-medium text-gray-700">No</label>
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <input type="radio" id="groupYes" name="isGroupTour" value="yes" class="h-4 w-4 rounded-full border border-gray-300 text-blue-600 focus:ring-blue-500">
-                                                <label for="groupYes" class="text-base font-medium text-gray-700">Yes</label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="space-y-2" id="singleTravelerNameField">
-                                        <label for="travelerOrGroupName" class="text-sm font-medium leading-none">Traveler/Group Name <span class="text-red-500">*</span></label>
-                                        <input type="text" id="travelerOrGroupName" name="travelerOrGroupName" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    </div>
-                                    
-                                    <div class="space-y-2" id="singleTravelerAmountField">
-                                        <label for="totalAmount" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
-                                        <input type="number" id="totalAmount" name="totalAmount" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    </div>
-
-                                    <div class="space-y-2">
-                                        <label for="entryDate" class="text-sm font-medium leading-none">Entry Date</label>
-                                        <input type="date" id="entryDate" name="entryDate" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    </div>
-                                    
-                                    <!-- Other Details Field -->
-                                    <div class="space-y-2">
-                                        <label for="otherDetails" class="text-sm font-medium leading-none">Other Details</label>
-                                        <input type="text" id="otherDetails" name="otherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    </div>
-
-                                    <!-- Receipt Number Field -->
-                                    <div class="space-y-2">
-                                        <label for="receiptNumber" class="text-sm font-medium leading-none">Receipt Number</label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" id="receiptNumber" name="receiptNumber" readonly class="flex-1 h-10 rounded-lg border border-gray-300 bg-gray-100 px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 cursor-not-allowed">
-                                            <button type="button" id="resetReceiptCounter" class="px-3 py-2 rounded-md font-semibold text-white bg-gray-500 hover:bg-gray-600 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">Reset</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Group Tour Details - Dynamically generated -->
-                                    <div id="groupTourDetails" class="space-y-6 hidden mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                        <h3 class="text-lg font-semibold text-gray-800">Group Tour Details (Up to 20 Members)</h3>
-                                        <div id="groupMembersContainer" class="space-y-4">
-                                            <!-- Group member rows will be appended here by JavaScript -->
-                                        </div>
-                                        <button type="button" id="addMemberButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
-                                            Add Member
-                                        </button>
-                                        <p id="memberLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 members can be added.</p>
-                                    </div>
-                                </div>
-
-                                <!-- Vendor Fields -->
-                                <div id="vendorFields" class="space-y-4 hidden">
-                                    <div class="space-y-2">
-                                        <label for="vendorTourId" class="text-sm font-medium leading-none">Tour ID <span class="text-red-500">*</span></label>
-                                        <div class="flex items-center">
-                                            <input type="text" id="vendorTourId" name="vendorTourId" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                        </div>
-                                    </div>
-
-                                    <div id="vendorServicesContainer" class="space-y-6 mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                                        <h3 class="text-lg font-semibold text-gray-800">Vendor Services (Up to 20 Services)</h3>
-                                        <!-- Vendor service rows will be appended here by JavaScript -->
-                                    </div>
-                                    <button type="button" id="addVendorServiceButton" class="px-4 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 mt-4">
-                                        Add Service
-                                    </button>
-                                    <p id="vendorServiceLimitMessage" class="text-sm text-red-600 hidden mt-2">Maximum 20 services can be added.</p>
-
-                                    <!-- Other Details Field (Common for Vendor Form) -->
-                                    <div class="space-y-2">
-                                        <label for="vendorOtherDetails" class="text-sm font-medium leading-none">Other Details</label>
-                                        <input type="text" id="vendorOtherDetails" name="vendorOtherDetails" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right Column - Common Payment Details (Now only for Traveler Form) -->
-                        <div class="space-y-6" id="commonPaymentDetailsColumn">
-                            <div class="space-y-2">
-                                <label for="paymentMode" class="text-sm font-medium leading-none">Payment Mode</label>
-                                <select id="paymentMode" name="paymentMode" class="flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                    <option value="cash">Cash</option>
-                                    <option value="bank_transfer">Bank Transfer</option>
-                                    <option value="cheque">Cheque</option>
-                                    <option value="upi">UPI</option>
-                                    <option value="other">Other</option>
-                                </select>
-                            </div>
-
-                            <div id="paymentDetailsFields" class="space-y-4">
-                                <div class="space-y-2">
-                                    <label for="paymentType" class="text-sm font-medium leading-none">Payment Type</label>
-                                    <input type="text" id="paymentType" name="paymentType" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                </div>
-                                <div class="space-y-2">
-                                    <label for="bankName" class="text-sm font-medium leading-none">Bank Name</label>
-                                    <input type="text" id="bankName" name="bankName" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center md:justify-end mt-8">
-                        <button type="submit" id="submitButton" class="w-full md:w-auto px-8 py-3 text-lg rounded-full font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300">
-                            Submit Payment
-                        </button>
-                    </div>
-
-                    <!-- Submission Result Message -->
-                    <div id="submitResultMessage" class="hidden p-4 mt-6 rounded-lg text-center font-medium"></div>
-                </form>
-            </div>
-        </div>
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="app-header">
+  <div class="header-inner">
+    <div>
+      <div class="brand-name">✈ Dream Destination</div>
+      <div class="brand-sub">Payment Tracker &amp; Ledger</div>
     </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span class="header-badge">v15.0</span>
+      <span class="header-badge" style="background:rgba(255,255,255,.08);font-size:.65rem;">M/s Anurag Maheshwari &amp; Co.</span>
+    </div>
+  </div>
+</header>
 
-    <iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main style="max-width:860px;margin:0 auto;padding:24px 16px 40px;">
 
-    <script>
-        // Get DOM elements
-        const paymentForm = document.getElementById('paymentForm');
-        const formTypeRadioGroup = document.getElementById('formTypeRadioGroup');
-        const travelerFields = document.getElementById('travelerFields');
-        const vendorFields = document.getElementById('vendorFields');
-        const submitButton = document.getElementById('submitButton');
-        const submitResultMessage = document.getElementById('submitResultMessage');
-        const commonPaymentDetailsColumn = document.getElementById('commonPaymentDetailsColumn'); // Added for hiding common details
+  <!-- Mode Toggle -->
+  <div style="margin-bottom:20px;">
+    <div class="mode-toggle">
+      <button class="mode-btn receipt-active" id="btnReceipt" onclick="switchMode('traveler')">
+        <span class="mode-icon">💰</span>
+        Receipt — Traveler Payment
+      </button>
+      <button class="mode-btn" id="btnPayment" onclick="switchMode('vendor')">
+        <span class="mode-icon">🏪</span>
+        Payment — Vendor / Supplier
+      </button>
+    </div>
+  </div>
 
-        // Elements for Traveler Form (Group Tour)
-        const tourIdInput = document.getElementById('tourId');
-        const tourDestinationImage = document.getElementById('tourDestinationImage');
-        const paymentStatusTravelerSelect = document.getElementById('paymentStatusTraveler'); // New Traveler Payment Status
-        const isGroupTourRadioGroup = document.getElementById('isGroupTourRadioGroup');
-        const groupTourDetails = document.getElementById('groupTourDetails');
-        const singleTravelerNameField = document.getElementById('singleTravelerNameField');
-        const singleTravelerAmountField = document.getElementById('singleTravelerAmountField');
-        const groupMembersContainer = document.getElementById('groupMembersContainer');
-        const addMemberButton = document.getElementById('addMemberButton');
-        const memberLimitMessage = document.getElementById('memberLimitMessage');
-        const paymentModeSelectTraveler = document.getElementById('paymentMode'); // Renamed for clarity in JS
-        const paymentTypeInputTraveler = document.getElementById('paymentType'); // Renamed for clarity in JS
-        const bankNameInputTraveler = document.getElementById('bankName'); // Renamed for clarity in JS
-        const otherDetailsInputTraveler = document.getElementById('otherDetails'); // Renamed for clarity in JS
-        const receiptNumberInput = document.getElementById('receiptNumber'); // New Receipt Number field
-        const paymentDetailsFieldsTraveler = document.getElementById('paymentDetailsFields'); // Renamed for clarity in JS
-        const resetReceiptCounterButton = document.getElementById('resetReceiptCounter'); // New Reset Button
+  <form id="mainForm" novalidate>
+
+    <!-- ───── TRAVELER RECEIPT SECTION ───── -->
+    <div id="travelerSection">
+
+      <!-- Row 1: Tour ID + Receipt No -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="section-tag tag-receipt">📋 Tour & Receipt</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+
+            <!-- Tour ID -->
+            <div class="field-group">
+              <label class="field-label">Tour ID <span class="req">*</span>
+                <span style="font-weight:400;color:#6b7280;font-size:.72rem;">e.g. GOA/SHARMA/GRP</span>
+              </label>
+              <div class="tour-id-wrap">
+                <input type="text" id="tourId" class="field-input receipt-focus" placeholder="Destination/Name/Type" autocomplete="off" list="tourIdList">
+                <datalist id="tourIdList"></datalist>
+                <span class="tour-id-clear" id="tourIdClear" onclick="clearTourId()">✕</span>
+              </div>
+              <div class="tour-chips" id="travelerTourChips"></div>
+            </div>
+
+            <!-- Receipt Number -->
+            <div class="field-group">
+              <label class="field-label">Receipt Number</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input type="text" id="receiptNumber" readonly class="field-input" style="flex:1;">
+                <button type="button" onclick="resetReceiptCounter()" style="padding:8px 12px;border-radius:8px;border:1.5px solid #d1d5db;font-size:.78rem;font-weight:600;color:#6b7280;cursor:pointer;background:#f8fafc;white-space:nowrap;">↺ Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="field-group">
+              <label class="field-label">Entry Date</label>
+              <input type="date" id="entryDate" class="field-input receipt-focus">
+            </div>
+            <div class="field-group">
+              <label class="field-label">Payment Status <span class="req">*</span></label>
+              <select id="paymentStatusTraveler" class="field-input receipt-focus">
+                <option value="advance">Advance</option>
+                <option value="partial">Partial</option>
+                <option value="full">Full</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Payment Mode</label>
+            <div class="radio-pill-group">
+              <div class="radio-pill green"><input type="radio" name="payMode" id="pmCash" value="cash" checked><label for="pmCash">💵 Cash</label></div>
+              <div class="radio-pill green"><input type="radio" name="payMode" id="pmUpi" value="upi"><label for="pmUpi">📱 UPI</label></div>
+              <div class="radio-pill green"><input type="radio" name="payMode" id="pmBank" value="bank_transfer"><label for="pmBank">🏦 Bank Transfer</label></div>
+              <div class="radio-pill green"><input type="radio" name="payMode" id="pmCheque" value="cheque"><label for="pmCheque">📃 Cheque</label></div>
+              <div class="radio-pill green"><input type="radio" name="payMode" id="pmOther" value="other"><label for="pmOther">⋯ Other</label></div>
+            </div>
+          </div>
+
+          <div id="bankDetailsRow" class="grid-2 hidden" style="margin-top:6px;">
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">Bank Name</label>
+              <input type="text" id="bankName" class="field-input receipt-focus" placeholder="e.g. HDFC, SBI">
+            </div>
+            <div class="field-group" style="margin-bottom:0;">
+              <label class="field-label">Payment / Txn Reference</label>
+              <input type="text" id="paymentType" class="field-input receipt-focus" placeholder="UPI ID / Txn No / Cheque No">
+            </div>
+          </div>
+
+          <div class="field-group" style="margin-top:12px;margin-bottom:0;">
+            <label class="field-label">Remarks / Other Details</label>
+            <input type="text" id="otherDetails" class="field-input receipt-focus" placeholder="Any additional note…">
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Traveler(s) -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="section-tag tag-receipt">👤 Traveler(s) &amp; Amount</span>
+          <div style="margin-left:auto;">
+            <div class="radio-pill-group">
+              <div class="radio-pill green"><input type="radio" name="isGroup" id="grpNo" value="no" checked onchange="toggleGroupMode()"><label for="grpNo">Single / Couple</label></div>
+              <div class="radio-pill green"><input type="radio" name="isGroup" id="grpYes" value="yes" onchange="toggleGroupMode()"><label for="grpYes">👥 Group Tour</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Single traveler -->
+          <div id="singleTravelerBlock">
+            <div class="grid-2">
+              <div class="field-group">
+                <label class="field-label">Traveler Name <span class="req">*</span></label>
+                <input type="text" id="travelerOrGroupName" class="field-input receipt-focus" placeholder="Full name">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Amount (₹) <span class="req">*</span></label>
+                <input type="number" id="totalAmount" class="field-input receipt-focus" placeholder="0.00" min="0" step="0.01">
+              </div>
+            </div>
+          </div>
+
+          <!-- Group traveler -->
+          <div id="groupTravelerBlock" class="hidden">
+            <div class="field-group">
+              <label class="field-label">Group / Tour Name <span class="req">*</span></label>
+              <input type="text" id="groupTourName" class="field-input receipt-focus" placeholder="e.g. Sharma Group – Goa 2025">
+            </div>
+            <div id="groupMembersContainer"></div>
+            <div style="display:flex;align-items:center;gap:16px;margin-top:4px;">
+              <button type="button" class="add-row-btn green" id="addMemberBtn" onclick="addMemberRow()">＋ Add Member</button>
+              <span class="running-total" id="groupRunningTotal">Total: <span>₹0</span></span>
+            </div>
+            <p id="memberLimitMsg" class="hidden" style="font-size:.78rem;color:#ef4444;margin-top:6px;">Maximum 20 members reached.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /travelerSection -->
 
 
-        // Elements for Vendor Form (Dynamic Services)
-        const vendorTourIdInput = document.getElementById('vendorTourId');
-        const vendorServicesContainer = document.getElementById('vendorServicesContainer');
-        const addVendorServiceButton = document.getElementById('addVendorServiceButton');
-        const vendorServiceLimitMessage = document.getElementById('vendorServiceLimitMessage');
-        const vendorOtherDetailsInput = document.getElementById('vendorOtherDetails');
+    <!-- ───── VENDOR PAYMENT SECTION ───── -->
+    <div id="vendorSection" class="hidden">
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="section-tag tag-payment">🔗 Tour Linkage</span>
+          <span style="margin-left:auto;font-size:.75rem;color:#6b7280;font-weight:500;">Link payment to a receipt Tour ID</span>
+        </div>
+        <div class="card-body">
+          <div class="field-group">
+            <label class="field-label">Tour ID <span class="req">*</span>
+              <span style="font-weight:400;color:#6b7280;font-size:.72rem;">— must match the receipt Tour ID exactly</span>
+            </label>
+            <div class="tour-id-wrap">
+              <input type="text" id="vendorTourId" class="field-input payment-focus" placeholder="Type or select from history…" autocomplete="off" list="vendorTourIdList" oninput="checkVendorTourId()">
+              <datalist id="vendorTourIdList"></datalist>
+            </div>
+            <!-- Reconciliation alert -->
+            <div class="recon-warn warn" id="reconWarn">
+              ⚠️ <span id="reconWarnText">This Tour ID has no receipt on record on this device. Please verify before submitting.</span>
+            </div>
+            <div class="recon-warn ok" id="reconOk">
+              ✅ <span>Tour ID matched — receipt on record. Reconciliation looks good.</span>
+            </div>
+            <div class="tour-chips" id="vendorTourChips"></div>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label class="field-label">Remarks / Other Details</label>
+            <input type="text" id="vendorOtherDetails" class="field-input payment-focus" placeholder="Any additional note…">
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <span class="section-tag tag-payment">🏪 Vendor Services</span>
+          <span style="margin-left:auto;font-size:.8rem;color:#6b7280;font-weight:600;" id="vendorTotalDisplay">Total: ₹0</span>
+        </div>
+        <div class="card-body">
+          <div id="vendorServicesContainer"></div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:4px;">
+            <button type="button" class="add-row-btn orange" id="addServiceBtn" onclick="addServiceRow()">＋ Add Service</button>
+          </div>
+          <p id="serviceLimitMsg" class="hidden" style="font-size:.78rem;color:#ef4444;margin-top:6px;">Maximum 20 services reached.</p>
+        </div>
+      </div>
+
+    </div><!-- /vendorSection -->
 
 
-        const MAX_GROUP_MEMBERS = 20; // Increased limit to 20 for Traveler Group Tour
-        let currentMemberCount = 0; // Tracks dynamically added members for Traveler Group Tour
+    <!-- Submit -->
+    <button type="submit" class="submit-btn receipt" id="submitBtn">
+      Submit Receipt ₹ →
+    </button>
+    <div class="result-msg" id="resultMsg"></div>
 
-        const MAX_VENDOR_SERVICES = 20; // Limit for Vendor Services
-        let currentVendorServiceCount = 0; // Tracks dynamically added vendor services
+  </form>
+</main>
 
-        let currentFormType = 'traveler'; // Initial form type
-        let isGroupTour = 'no'; // Initial group tour state
+<div class="app-footer">Property of M/s Anurag Maheshwari &amp; Company · Dream Destination · Saharanpur</div>
 
-        // --- Destination Image Mapping for Traveler Form ---
-        const destinationImages = {
-            'goa': 'https://placehold.co/120x120/20a8d8/ffffff?text=Goa+Beaches+%E2%9C%A8',
-            'paris': 'https://placehold.co/120x120/8d002f/ffffff?text=Eiffel+Night+%F0%9F%8C%9F',
-            'london': 'https://placehold.co/120x120/4e4c4f/ffffff?text=London+Bridge+%F0%9F%8C%86',
-            'mountains': 'https://placehold.co/120x120/4CAF50/ffffff?text=Alpine+Peaks+%F0%9F%8F%94',
-            'beach': 'https://placehold.co/120x120/f39c12/ffffff?text=Tropical+Beach+%F0%9F%8C%9E',
-            'city': 'https://placehold.co/120x120/34495e/ffffff?text=Metropolis+%F0%9F%8C%88',
-            'desert': 'https://placehold.co/120x120/e67e22/ffffff?text=Desert+Dunes+%F0%9F%8C%9B',
-            'temple': 'https://placehold.co/120x120/880e4f/ffffff?text=Ancient+Temple+%F0%9F%8F%9B',
-            'river': 'https://placehold.co/120x120/2196f3/ffffff?text=Serene+River+%F0%9F%9A%A2',
-            'historical': 'https://placehold.co/120x120/607d8b/ffffff?text=Historic+Ruins+%F0%9F%8C%87',
-            'island': 'https://placehold.co/120x120/008080/ffffff?text=Island+Paradise+%F0%9F%8C%B4',
-            'forest': 'https://placehold.co/120x120/228B22/ffffff?text=Deep+Forest+%F0%9F%8C%B3',
-            'cruise': 'https://placehold.co/120x120/000080/ffffff?text=Ocean+Cruise+%F0%9F%9B%A2'
-        };
+<iframe id="hiddenIframe" name="hiddenIframe" style="display:none;"></iframe>
 
-        function updateTourDestinationImage() {
-            const tourIdValue = tourIdInput.value.toLowerCase();
-            let matched = false;
-            for (const keyword in destinationImages) {
-                if (tourIdValue.includes(keyword)) {
-                    tourDestinationImage.src = destinationImages[keyword];
-                    tourDestinationImage.style.display = 'block';
-                    // Fallback for PDF icon if the image fails to load
-                    tourDestinationImage.onerror = () => {
-                        tourDestinationImage.src = 'https://placehold.co/120x120/999999/ffffff?text=Image+Error';
-                        console.error("Failed to load image for tour ID:", tourIdValue);
-                    };
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched) {
-                tourDestinationImage.style.display = 'none';
-                tourDestinationImage.src = ''; // Clear image source
-            }
+<!-- ═══════════════════ SCRIPT ═══════════════════ -->
+<script>
+// ── Constants ──
+const BACKEND = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
+const RECEIPT_KEY = 'paymentAppReceiptCounter';
+const TOUR_HISTORY_KEY = 'dreamDest_tourIdHistory';
+const MAX_MEMBERS = 20;
+const MAX_SERVICES = 20;
+
+// ── State ──
+let currentMode = 'traveler'; // 'traveler' | 'vendor'
+let isGroupTour = false;
+let memberCount = 0;
+let serviceCount = 0;
+
+// ── Tour ID History (localStorage) ──
+function getTourHistory() {
+  try { return JSON.parse(localStorage.getItem(TOUR_HISTORY_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveTourId(id) {
+  if (!id || id.trim().length < 2) return;
+  const hist = getTourHistory();
+  const clean = id.trim().toUpperCase();
+  const updated = [clean, ...hist.filter(h => h !== clean)].slice(0, 30);
+  localStorage.setItem(TOUR_HISTORY_KEY, JSON.stringify(updated));
+}
+function refreshDatalistAndChips() {
+  const hist = getTourHistory();
+  // Traveler datalist
+  const dl1 = document.getElementById('tourIdList');
+  dl1.innerHTML = hist.map(h => `<option value="${h}">`).join('');
+  // Vendor datalist
+  const dl2 = document.getElementById('vendorTourIdList');
+  dl2.innerHTML = hist.map(h => `<option value="${h}">`).join('');
+  // Chips — traveler
+  const tc = document.getElementById('travelerTourChips');
+  tc.innerHTML = hist.slice(0,8).map(h => `<span class="tour-chip" onclick="selectTravelerTourId('${h}')">${h}</span>`).join('');
+  // Chips — vendor
+  const vc = document.getElementById('vendorTourChips');
+  vc.innerHTML = hist.slice(0,8).map(h => `<span class="tour-chip" onclick="selectVendorTourId('${h}')">${h}</span>`).join('');
+}
+function selectTravelerTourId(id) {
+  document.getElementById('tourId').value = id;
+  document.getElementById('tourIdClear').style.display = 'block';
+}
+function selectVendorTourId(id) {
+  document.getElementById('vendorTourId').value = id;
+  checkVendorTourId();
+}
+function clearTourId() {
+  document.getElementById('tourId').value = '';
+  document.getElementById('tourIdClear').style.display = 'none';
+}
+
+// Vendor Tour ID reconciliation check
+function checkVendorTourId() {
+  const val = document.getElementById('vendorTourId').value.trim().toUpperCase();
+  const warn = document.getElementById('reconWarn');
+  const ok = document.getElementById('reconOk');
+  warn.classList.remove('show');
+  ok.classList.remove('show');
+  if (val.length < 2) return;
+  const hist = getTourHistory();
+  if (hist.includes(val)) {
+    ok.classList.add('show');
+  } else {
+    warn.classList.add('show');
+  }
+}
+document.getElementById('tourId').addEventListener('input', function() {
+  document.getElementById('tourIdClear').style.display = this.value ? 'block' : 'none';
+});
+
+// ── Mode Switch ──
+function switchMode(mode) {
+  currentMode = mode;
+  const isTraveler = mode === 'traveler';
+  document.getElementById('travelerSection').classList.toggle('hidden', !isTraveler);
+  document.getElementById('vendorSection').classList.toggle('hidden', isTraveler);
+  document.getElementById('btnReceipt').className = 'mode-btn' + (isTraveler ? ' receipt-active' : '');
+  document.getElementById('btnPayment').className = 'mode-btn' + (!isTraveler ? ' payment-active' : '');
+  const btn = document.getElementById('submitBtn');
+  btn.className = 'submit-btn ' + (isTraveler ? 'receipt' : 'payment');
+  btn.textContent = isTraveler ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
+  hideResult();
+}
+
+// ── Group Mode ──
+function toggleGroupMode() {
+  isGroupTour = document.getElementById('grpYes').checked;
+  document.getElementById('singleTravelerBlock').classList.toggle('hidden', isGroupTour);
+  document.getElementById('groupTravelerBlock').classList.toggle('hidden', !isGroupTour);
+  if (isGroupTour && memberCount === 0) addMemberRow();
+}
+
+// ── Payment Mode ──
+document.querySelectorAll('input[name="payMode"]').forEach(r => {
+  r.addEventListener('change', () => {
+    const isCash = r.value === 'cash';
+    document.getElementById('bankDetailsRow').classList.toggle('hidden', isCash);
+  });
+});
+
+// ── Receipt Number ──
+function getReceiptNum() {
+  return parseInt(localStorage.getItem(RECEIPT_KEY) || '1', 10) || 1;
+}
+function bumpReceiptNum() {
+  const n = getReceiptNum() + 1;
+  localStorage.setItem(RECEIPT_KEY, n);
+}
+function resetReceiptCounter() {
+  if (!confirm('Reset receipt counter to 1?')) return;
+  localStorage.setItem(RECEIPT_KEY, '1');
+  document.getElementById('receiptNumber').value = 1;
+}
+function refreshReceiptNum() {
+  document.getElementById('receiptNumber').value = getReceiptNum();
+}
+
+// ── Group Members ──
+function addMemberRow() {
+  if (memberCount >= MAX_MEMBERS) return;
+  memberCount++;
+  const idx = memberCount;
+  const div = document.createElement('div');
+  div.className = 'member-row';
+  div.id = `memberRow${idx}`;
+  const today = new Date().toISOString().split('T')[0];
+  div.innerHTML = `
+    <div class="member-row-header">
+      <span class="member-badge">Member ${idx}</span>
+      <button type="button" class="remove-btn" onclick="removeMemberRow(${idx})">✕ Remove</button>
+    </div>
+    <div class="grid-2">
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Name ${idx===1?'<span class="req">*</span>':''}</label>
+        <input type="text" id="gName${idx}" name="groupName${idx}" class="field-input receipt-focus" placeholder="Traveler name">
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Amount (₹) ${idx===1?'<span class="req">*</span>':''}</label>
+        <input type="number" id="gAmt${idx}" name="groupAmount${idx}" class="field-input receipt-focus" placeholder="0.00" min="0" step="0.01" oninput="updateGroupTotal()">
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:8px;">
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Date</label>
+        <input type="date" id="gDate${idx}" name="groupDate${idx}" class="field-input receipt-focus" value="${today}">
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Bank / Mode</label>
+        <input type="text" id="gBank${idx}" name="groupBank${idx}" class="field-input receipt-focus" placeholder="Cash / HDFC / UPI…">
+      </div>
+    </div>`;
+  document.getElementById('groupMembersContainer').appendChild(div);
+  if (memberCount >= MAX_MEMBERS) {
+    document.getElementById('addMemberBtn').classList.add('hidden');
+    document.getElementById('memberLimitMsg').classList.remove('hidden');
+  }
+}
+function removeMemberRow(idx) {
+  const el = document.getElementById(`memberRow${idx}`);
+  if (el) el.remove();
+  updateGroupTotal();
+}
+function updateGroupTotal() {
+  let total = 0;
+  document.querySelectorAll('[id^="gAmt"]').forEach(i => {
+    const v = parseFloat(i.value);
+    if (!isNaN(v)) total += v;
+  });
+  document.getElementById('groupRunningTotal').innerHTML = `Total: <span>₹${total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>`;
+}
+
+// ── Vendor Services ──
+const SERVICE_TYPES = ['Air Service','Hotel / Accommodation','VISA','Transportation','Sightseeing','Train / Rail','Cruise','Insurance','Car Rental','Other / Custom'];
+const PAYMENT_METHODS = ['Cash','Bank Transfer','Cheque','UPI','Credit Card','Other'];
+
+function addServiceRow() {
+  if (serviceCount >= MAX_SERVICES) return;
+  serviceCount++;
+  const idx = serviceCount;
+  const div = document.createElement('div');
+  div.className = 'service-row';
+  div.id = `serviceRow${idx}`;
+  const today = new Date().toISOString().split('T')[0];
+  const stOpts = SERVICE_TYPES.map(s => `<option value="${s}">${s}</option>`).join('');
+  const pmOpts = PAYMENT_METHODS.map(m => `<option value="${m}">${m}</option>`).join('');
+  div.innerHTML = `
+    <div class="service-row-header">
+      <span class="service-badge">Service ${idx}</span>
+      <button type="button" class="remove-btn" onclick="removeServiceRow(${idx})">✕ Remove</button>
+    </div>
+    <div class="grid-3">
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Service Type <span class="req">*</span></label>
+        <select id="sType${idx}" name="serviceType${idx}" class="field-input payment-focus"><option value="">Select…</option>${stOpts}</select>
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Vendor Name <span class="req">*</span></label>
+        <input type="text" id="sVendor${idx}" name="vendorName${idx}" class="field-input payment-focus" placeholder="Vendor / supplier name">
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Date</label>
+        <input type="date" id="sDate${idx}" name="serviceDate${idx}" class="field-input payment-focus" value="${today}">
+      </div>
+    </div>
+    <div class="grid-3" style="margin-top:8px;">
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Amount (₹) <span class="req">*</span></label>
+        <input type="number" id="sAmt${idx}" name="serviceAmount${idx}" class="field-input payment-focus" placeholder="0.00" min="0" step="0.01" oninput="updateVendorTotal()">
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Payment Method</label>
+        <select id="sPm${idx}" name="paymentMethod${idx}" class="field-input payment-focus"><option value="">Select…</option>${pmOpts}</select>
+      </div>
+      <div class="field-group" style="margin-bottom:0;"><label class="field-label">Bank / Txn Details</label>
+        <input type="text" id="sTxn${idx}" name="bankTxnDetails${idx}" class="field-input payment-focus" placeholder="UPI ID / Txn No…">
+      </div>
+    </div>`;
+  document.getElementById('vendorServicesContainer').appendChild(div);
+  if (serviceCount >= MAX_SERVICES) {
+    document.getElementById('addServiceBtn').classList.add('hidden');
+    document.getElementById('serviceLimitMsg').classList.remove('hidden');
+  }
+}
+function removeServiceRow(idx) {
+  const el = document.getElementById(`serviceRow${idx}`);
+  if (el) { el.remove(); updateVendorTotal(); }
+  if (document.querySelectorAll('[id^="serviceRow"]').length === 0) addServiceRow();
+}
+function updateVendorTotal() {
+  let total = 0;
+  document.querySelectorAll('[id^="sAmt"]').forEach(i => {
+    const v = parseFloat(i.value);
+    if (!isNaN(v)) total += v;
+  });
+  document.getElementById('vendorTotalDisplay').textContent = `Total: ₹${total.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+}
+
+// ── UI Helpers ──
+function showResult(msg, type) {
+  const el = document.getElementById('resultMsg');
+  el.textContent = msg;
+  el.className = `result-msg show ${type}`;
+}
+function hideResult() {
+  document.getElementById('resultMsg').className = 'result-msg';
+}
+
+// ── Form Submit ──
+document.getElementById('mainForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  hideResult();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Submitting…';
+
+  let payload = { company: 'Anurag Maheshwari and Company', type: currentMode };
+
+  if (currentMode === 'traveler') {
+    const tid = document.getElementById('tourId').value.trim();
+    if (!tid) { showResult('Tour ID is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+    payload.tourId = tid;
+    payload.entryDate = document.getElementById('entryDate').value;
+    payload.paymentStatus = document.getElementById('paymentStatusTraveler').value;
+    const payMode = document.querySelector('input[name="payMode"]:checked').value;
+    payload.paymentMode = payMode;
+    payload.paymentType = document.getElementById('paymentType').value;
+    payload.bankName = document.getElementById('bankName').value;
+    payload.otherDetails = document.getElementById('otherDetails').value;
+    payload.receiptNumber = document.getElementById('receiptNumber').value;
+
+    if (isGroupTour) {
+      payload.isGroupTour = true;
+      payload.groupName = document.getElementById('groupTourName').value;
+      payload.groupMembers = [];
+      let totalAmt = 0;
+      let valid = true;
+      document.querySelectorAll('[id^="memberRow"]').forEach((row, i) => {
+        const ridx = row.id.replace('memberRow','');
+        const name = (document.getElementById(`gName${ridx}`) || {}).value || '';
+        const amt  = (document.getElementById(`gAmt${ridx}`) || {}).value || '';
+        const date = (document.getElementById(`gDate${ridx}`) || {}).value || '';
+        const bank = (document.getElementById(`gBank${ridx}`) || {}).value || '';
+        if (name || amt) {
+          if (!name || isNaN(parseFloat(amt))) {
+            showResult(`Member ${i+1}: provide both Name and Amount.`, 'error');
+            valid = false; return;
+          }
+          payload.groupMembers.push({ name, amount: parseFloat(amt), date, bank });
+          totalAmt += parseFloat(amt);
         }
-        tourIdInput.addEventListener('input', updateTourDestinationImage);
-        // --- End Destination Image Mapping ---
+      });
+      if (!valid) { btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+      if (!payload.groupMembers.length) { showResult('Add at least one group member.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+      payload.totalAmount = totalAmt;
+    } else {
+      payload.isGroupTour = false;
+      const name = document.getElementById('travelerOrGroupName').value.trim();
+      const amt  = document.getElementById('totalAmount').value;
+      if (!name) { showResult('Traveler Name is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+      if (!amt || isNaN(parseFloat(amt))) { showResult('Amount is required.', 'error'); btn.disabled=false; btn.textContent='Submit Receipt ₹ →'; return; }
+      payload.travelerOrGroupName = name;
+      payload.totalAmount = parseFloat(amt);
+    }
 
+  } else { // vendor
+    const tid = document.getElementById('vendorTourId').value.trim();
+    if (!tid) { showResult('Tour ID is required for reconciliation.', 'error'); btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
+    payload.tourId = tid;
+    payload.otherDetails = document.getElementById('vendorOtherDetails').value;
+    payload.services = [];
+    let totalAmt = 0;
+    let valid = true;
 
-        // --- Receipt Number Counter ---
-        const RECEIPT_COUNTER_KEY = 'paymentAppReceiptCounter';
-        const STARTING_RECEIPT_NUMBER = 1; // Changed to 1
-
-        function getNextReceiptNumber() {
-            let lastReceiptNumber = parseInt(localStorage.getItem(RECEIPT_COUNTER_KEY) || STARTING_RECEIPT_NUMBER.toString(), 10);
-            if (isNaN(lastReceiptNumber)) { // Fallback if localStorage corrupted
-                lastReceiptNumber = STARTING_RECEIPT_NUMBER;
-            }
-            return lastReceiptNumber;
+    document.querySelectorAll('[id^="serviceRow"]').forEach((row, i) => {
+      const ridx = row.id.replace('serviceRow','');
+      const sType  = (document.getElementById(`sType${ridx}`) || {}).value || '';
+      const vendor = (document.getElementById(`sVendor${ridx}`) || {}).value || '';
+      const date   = (document.getElementById(`sDate${ridx}`) || {}).value || '';
+      const amt    = (document.getElementById(`sAmt${ridx}`) || {}).value || '';
+      const pm     = (document.getElementById(`sPm${ridx}`) || {}).value || '';
+      const txn    = (document.getElementById(`sTxn${ridx}`) || {}).value || '';
+      if (sType || vendor || amt) {
+        if (!sType || !vendor || isNaN(parseFloat(amt))) {
+          showResult(`Service ${i+1}: Service Type, Vendor Name and Amount are required.`, 'error');
+          valid = false; return;
         }
-
-        function incrementAndSaveReceiptNumber() {
-            let nextNumber = getNextReceiptNumber();
-            nextNumber++;
-            localStorage.setItem(RECEIPT_COUNTER_KEY, nextNumber.toString());
-            return nextNumber;
-        }
-
-        function updateReceiptNumberField() {
-            if (receiptNumberInput) {
-                receiptNumberInput.value = getNextReceiptNumber();
-            }
-        }
-
-        // Event listener for Reset Receipt Counter button
-        if (resetReceiptCounterButton) {
-            resetReceiptCounterButton.addEventListener('click', () => {
-                localStorage.setItem(RECEIPT_COUNTER_KEY, STARTING_RECEIPT_NUMBER.toString()); // Set directly to 1
-                updateReceiptNumberField(); // Update the field
-                submitResultMessage.textContent = 'Receipt counter reset to ' + STARTING_RECEIPT_NUMBER + '.';
-                submitResultMessage.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'border-red-300');
-                submitResultMessage.classList.add('bg-blue-100', 'text-blue-800', 'border', 'border-blue-300');
-            });
-        }
-        // --- End Receipt Number Counter ---
-
-
-        // --- Traveler Group Member Functions ---
-        function createGroupMemberRow(memberIndex) {
-            const memberDiv = document.createElement('div');
-            memberDiv.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-4', 'gap-4', 'items-end', 'pb-4');
-            if (memberIndex < MAX_GROUP_MEMBERS) { 
-                memberDiv.classList.add('border-b');
-            }
-
-            const nameId = `groupName${memberIndex}`;
-            const amountId = `groupAmount${memberIndex}`;
-            const dateId = `groupDate${memberIndex}`;
-            const bankId = `groupBank${memberIndex}`;
-
-            memberDiv.innerHTML = `
-                <div class="space-y-2">
-                    <label for="${nameId}" class="text-sm font-medium leading-none">Name ${memberIndex} ${memberIndex === 1 ? '<span class="text-red-500">*</span>' : ''}</label>
-                    <input type="text" id="${nameId}" name="${nameId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                </div>
-                <div class="space-y-2">
-                    <label for="${amountId}" class="text-sm font-medium leading-none">Amount (₹) ${memberIndex === 1 ? '<span class="text-red-500">*</span>' : ''}</label>
-                    <input type="number" id="${amountId}" name="${amountId}" step="0.01" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                </div>
-                <div class="space-y-2">
-                    <label for="${dateId}" class="text-sm font-medium leading-none">Date</label>
-                    <input type="date" id="${dateId}" name="${dateId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                </div>
-                <div class="space-y-2">
-                    <label for="${bankId}" class="text-sm font-medium leading-none">Bank</label>
-                    <input type="text" id="${bankId}" name="${bankId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                </div>
-            `;
-            return memberDiv;
-        }
-
-        function addMemberRow() {
-            if (currentMemberCount < MAX_GROUP_MEMBERS) {
-                currentMemberCount++;
-                const newRow = createGroupMemberRow(currentMemberCount);
-                groupMembersContainer.appendChild(newRow);
-                attachGroupMemberListeners(currentMemberCount); // Attach listeners to new row
-                document.getElementById(`groupDate${currentMemberCount}`).value = new Date().toISOString().split('T')[0];
-                
-                if (currentMemberCount >= MAX_GROUP_MEMBERS) {
-                    addMemberButton.classList.add('hidden');
-                    memberLimitMessage.classList.remove('hidden');
-                }
-            }
-        }
-
-        function clearGroupMembers() {
-            groupMembersContainer.innerHTML = '';
-            currentMemberCount = 0;
-            addMemberButton.classList.remove('hidden');
-            memberLimitMessage.classList.add('hidden');
-        }
-
-        function attachGroupMemberListeners(index) {
-            const groupNameInput = document.getElementById(`groupName${index}`);
-            const groupAmountInput = document.getElementById(`groupAmount${index}`);
-
-            if (groupNameInput && groupAmountInput) {
-                groupNameInput.addEventListener('input', () => {
-                    if (groupNameInput.value.trim() !== '') {
-                        groupAmountInput.setAttribute('required', 'true');
-                    } else {
-                        groupAmountInput.removeAttribute('required');
-                    }
-                });
-                groupAmountInput.addEventListener('input', () => {
-                    if (groupAmountInput.value.trim() !== '') {
-                        groupNameInput.setAttribute('required', 'true');
-                    } else {
-                        groupNameInput.removeAttribute('required');
-                    }
-                });
-            }
-        }
-        addMemberButton.addEventListener('click', addMemberRow);
-        // --- End Traveler Group Member Functions ---
-
-
-        // --- Vendor Service Functions ---
-        function createVendorServiceRow(serviceIndex) {
-            const serviceDiv = document.createElement('div');
-            serviceDiv.classList.add('space-y-4', 'pb-4', 'border-b', 'border-gray-300', 'last:border-b-0', 'mb-4');
-
-            const serviceTypeSelectId = `serviceType${serviceIndex}`;
-            const vendorNameId = `vendorName${serviceIndex}`;
-            const serviceDateId = `serviceDate${serviceIndex}`;
-            const serviceAmountId = `serviceAmount${serviceIndex}`;
-            const paymentMethodId = `paymentMethod${serviceIndex}`;
-            const bankTxnDetailsId = `bankTxnDetails${serviceIndex}`;
-            const removeButtonId = `removeService${serviceIndex}`;
-
-            serviceDiv.innerHTML = `
-                <h4 class="text-md font-semibold text-gray-700">Service ${serviceIndex}</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-                    <div class="space-y-2">
-                        <label for="${serviceTypeSelectId}" class="text-sm font-medium leading-none">Service Type <span class="text-red-500">*</span></label>
-                        <select id="${serviceTypeSelectId}" name="${serviceTypeSelectId}" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                            <option value="">Select Service Type</option>
-                            <option value="air-service">Air Service</option>
-                            <option value="hotel-accommodation">Hotel / Accommodation</option>
-                            <option value="visa">VISA</option>
-                            <option value="transportation">Transportation</option>
-                            <option value="other-custom">Other Custom Services</option>
-                        </select>
-                    </div>
-                    <div class="space-y-2">
-                        <label for="${vendorNameId}" class="text-sm font-medium leading-none">Vendor Name <span class="text-red-500">*</span></label>
-                        <input type="text" id="${vendorNameId}" name="${vendorNameId}" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label for="${serviceDateId}" class="text-sm font-medium leading-none">Date</label>
-                        <input type="date" id="${serviceDateId}" name="${serviceDateId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label for="${serviceAmountId}" class="text-sm font-medium leading-none">Amount (₹) <span class="text-red-500">*</span></label>
-                        <input type="number" id="${serviceAmountId}" name="${serviceAmountId}" step="0.01" required class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                    </div>
-                    <div class="space-y-2">
-                        <label for="${paymentMethodId}" class="text-sm font-medium leading-none">Payment Method</label>
-                        <select id="${paymentMethodId}" name="${paymentMethodId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-                            <option value="">Select Method</option>
-                            <option value="cash">Cash</option>
-                            <option value="bank-transfer">Bank Transfer</option>
-                            <option value="cheque">Cheque</option>
-                            <option value="upi">UPI</option>
-                            <option value="credit-card">Credit Card</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div class="space-y-2">
-                        <label for="${bankTxnDetailsId}" class="text-sm font-medium leading-none">Bank / Txn Details</label>
-                        <input type="text" id="${bankTxnDetailsId}" name="${bankTxnDetailsId}" class="flex h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="e.g. HDFC Bank, UPI ID, Txn ID">
-                    </div>
-                </div>
-                <button type="button" id="${removeButtonId}" class="text-red-600 hover:text-red-800 text-sm font-medium mt-2">Remove Service</button>
-            `;
-            serviceDiv.dataset.serviceIndex = serviceIndex; // Store index for easy removal
-
-            // Attach remove listener
-            const removeBtn = serviceDiv.querySelector(`#${removeButtonId}`);
-            removeBtn.addEventListener('click', () => removeVendorServiceRow(serviceDiv));
-
-            // Attach dynamic required listeners
-            attachVendorServiceListeners(serviceTypeSelectId, vendorNameId, serviceAmountId);
-
-            return serviceDiv;
-        }
-
-        function addVendorServiceRow() {
-            if (currentVendorServiceCount < MAX_VENDOR_SERVICES) {
-                currentVendorServiceCount++;
-                const newRow = createVendorServiceRow(currentVendorServiceCount);
-                vendorServicesContainer.appendChild(newRow);
-                document.getElementById(`serviceDate${currentVendorServiceCount}`).value = new Date().toISOString().split('T')[0]; // Set default date
-                
-                if (currentVendorServiceCount >= MAX_VENDOR_SERVICES) {
-                    addVendorServiceButton.classList.add('hidden');
-                    vendorServiceLimitMessage.classList.remove('hidden');
-                }
-            }
-        }
-
-        function removeVendorServiceRow(rowElement) {
-            vendorServicesContainer.removeChild(rowElement);
-            // We need to re-evaluate the currentVendorServiceCount based on actual elements
-            // after removal, as direct decrementing might not be accurate if non-last elements are removed.
-            const remainingServices = vendorServicesContainer.querySelectorAll('.space-y-4.pb-4');
-            currentVendorServiceCount = remainingServices.length;
-           
-            // If the last service was removed and the count is 0, add a default one back
-            if (currentVendorServiceCount === 0 && currentFormType === 'vendor') {
-                addVendorServiceRow();
-            }
-
-            // Update add button visibility
-            addVendorServiceButton.classList.remove('hidden');
-            vendorServiceLimitMessage.classList.add('hidden');
-        }
-
-        function clearVendorServices() {
-            vendorServicesContainer.innerHTML = '';
-            currentVendorServiceCount = 0;
-            addVendorServiceButton.classList.remove('hidden');
-            vendorServiceLimitMessage.classList.add('hidden');
-        }
-
-        function attachVendorServiceListeners(serviceTypeSelectId, vendorNameId, serviceAmountId) {
-            const serviceTypeSelect = document.getElementById(serviceTypeSelectId);
-            const vendorNameInput = document.getElementById(vendorNameId);
-            const serviceAmountInput = document.getElementById(serviceAmountId);
-
-            // Make Vendor Name and Amount required if Service Type is selected
-            if (serviceTypeSelect) {
-                serviceTypeSelect.addEventListener('change', () => {
-                    if (serviceTypeSelect.value.trim() !== '') {
-                        vendorNameInput.setAttribute('required', 'true');
-                        serviceAmountInput.setAttribute('required', 'true');
-                    } else {
-                        vendorNameInput.removeAttribute('required');
-                        serviceAmountInput.removeAttribute('required');
-                    }
-                });
-            }
-
-            // Add mutual required logic for Vendor Name and Amount
-            if (vendorNameInput && serviceAmountInput) {
-                vendorNameInput.addEventListener('input', () => {
-                    if (vendorNameInput.value.trim() !== '') {
-                        serviceAmountInput.setAttribute('required', 'true');
-                        if (serviceTypeSelect.value.trim() === '') { // If type isn't set, also suggest it
-                            serviceTypeSelect.setAttribute('required', 'true');
-                        }
-                    } else {
-                        serviceAmountInput.removeAttribute('required');
-                        if (serviceTypeSelect.value.trim() === '') {
-                             serviceTypeSelect.removeAttribute('required');
-                        }
-                    }
-                });
-                serviceAmountInput.addEventListener('input', () => {
-                    if (serviceAmountInput.value.trim() !== '') {
-                        vendorNameInput.setAttribute('required', 'true');
-                        if (serviceTypeSelect.value.trim() === '') {
-                            serviceTypeSelect.setAttribute('required', 'true');
-                        }
-                    } else {
-                        vendorNameInput.removeAttribute('required');
-                        if (serviceTypeSelect.value.trim() === '') {
-                            serviceTypeSelect.removeAttribute('required');
-                        }
-                    }
-                });
-            }
-        }
-        addVendorServiceButton.addEventListener('click', addVendorServiceRow);
-        // --- End Vendor Service Functions ---
-
-
-        // --- Global Visibility and Event Listeners ---
-        function updateFormVisibility() {
-            if (currentFormType === 'traveler') {
-                travelerFields.classList.remove('hidden');
-                vendorFields.classList.add('hidden');
-                commonPaymentDetailsColumn.classList.remove('hidden'); // Show common fields for traveler
-
-                // Set traveler specific fields as required
-                document.getElementById('tourId').setAttribute('required', 'true');
-                document.getElementById('travelerOrGroupName').setAttribute('required', 'true');
-                document.getElementById('totalAmount').setAttribute('required', 'true');
-                paymentStatusTravelerSelect.setAttribute('required', 'true'); // Payment Status required for traveler
-                
-                // Remove vendor specific requirements
-                vendorTourIdInput.removeAttribute('required');
-                clearVendorServices(); // Clear and hide vendor service rows
-                
-                updateGroupTourVisibility(); // Also update group tour fields when switching to traveler
-            } else { // Vendor Form
-                travelerFields.classList.add('hidden');
-                vendorFields.classList.remove('hidden');
-                commonPaymentDetailsColumn.classList.add('hidden'); // Hide common fields for vendor
-
-                // Set vendor specific fields as required
-                vendorTourIdInput.setAttribute('required', 'true');
-                
-                // Remove traveler specific requirements
-                document.getElementById('tourId').removeAttribute('required');
-                paymentStatusTravelerSelect.removeAttribute('required'); // Payment Status not required for vendor
-                document.getElementById('travelerOrGroupName').removeAttribute('required');
-                document.getElementById('totalAmount').removeAttribute('required');
-                clearGroupMembers(); // Clear and hide group tour fields
-                isGroupTour = 'no'; // Reset the flag
-                document.getElementById('groupNo').checked = true; // Visually reset radio button
-
-                // Ensure at least one vendor service row exists when switching to vendor
-                if (currentVendorServiceCount === 0) {
-                    addVendorServiceRow();
-                }
-            }
-
-            // Always set entryDate for traveler form to today's date initially if it's traveler and empty
-            const entryDateInput = document.getElementById('entryDate');
-            if (currentFormType === 'traveler' && entryDateInput.value === '') {
-                 entryDateInput.value = new Date().toISOString().split('T')[0];
-            }
-            updateReceiptNumberField(); // Update receipt number visibility here too
-        }
-
-        // Function to update payment details visibility based on payment mode (for Traveler only)
-        // This function is still needed as paymentTypeInputTraveler and bankNameInputTraveler are dependent on paymentModeSelectTraveler
-        paymentModeSelectTraveler.addEventListener('change', () => {
-            if (paymentModeSelectTraveler.value === 'cash') {
-                paymentDetailsFieldsTraveler.classList.add('hidden');
-                paymentTypeInputTraveler.removeAttribute('required');
-                bankNameInputTraveler.removeAttribute('required');
-            } else {
-                paymentDetailsFieldsTraveler.classList.remove('hidden');
-                // You might want to make these required based on your business logic
-                // paymentTypeInputTraveler.setAttribute('required', 'true');
-                // bankNameInputTraveler.setAttribute('required', 'true');
-            }
-        });
-
-
-        // Function to update group tour fields visibility and required attributes
-        function updateGroupTourVisibility() {
-            if (currentFormType === 'traveler') {
-                if (isGroupTour === 'yes') {
-                    groupTourDetails.classList.remove('hidden');
-                    singleTravelerNameField.classList.add('hidden');
-                    singleTravelerAmountField.classList.add('hidden');
-
-                    document.getElementById('travelerOrGroupName').removeAttribute('required');
-                    document.getElementById('totalAmount').removeAttribute('required');
-
-                    // Ensure at least one member row exists if "Yes" is selected
-                    if (currentMemberCount === 0) {
-                        addMemberRow(); // Add the first row
-                    } else {
-                        // Re-apply required to the first visible row if it exists
-                        const firstGroupName = document.getElementById(`groupName1`);
-                        const firstGroupAmount = document.getElementById(`groupAmount1`);
-                        if (firstGroupName && firstGroupName.value.trim() !== '') {
-                            firstGroupAmount.setAttribute('required', 'true');
-                        } else if (firstGroupAmount && firstGroupAmount.value.trim() !== '') {
-                            firstGroupName.setAttribute('required', 'true');
-                        }
-                        // Default to required if nothing is entered at all for the first row
-                        else {
-                            firstGroupName.setAttribute('required', 'true');
-                            firstGroupAmount.setAttribute('required', 'true');
-                        }
-                    }
-
-                } else {
-                    groupTourDetails.classList.add('hidden');
-                    singleTravelerNameField.classList.remove('hidden');
-                    singleTravelerAmountField.classList.remove('hidden');
-
-                    document.getElementById('travelerOrGroupName').setAttribute('required', 'true');
-                    document.getElementById('totalAmount').setAttribute('required', 'true');
-
-                    clearGroupMembers(); // Clear all dynamic group member fields
-                }
-            } else {
-                 groupTourDetails.classList.add('hidden');
-                 singleTravelerNameField.classList.remove('hidden');
-                 singleTravelerAmountField.classList.remove('hidden');
-                 // Ensure single traveler fields are not required if formType is vendor
-                 document.getElementById('travelerOrGroupName').removeAttribute('required');
-                 document.getElementById('totalAmount').removeAttribute('required');
-                 clearGroupMembers(); // Ensure group tour fields are cleared even if vendor selected
-            }
-        }
-
-        // Event listener for form type change (radio buttons)
-        formTypeRadioGroup.addEventListener('change', (event) => {
-            currentFormType = event.target.value;
-            console.log("Form type changed to:", currentFormType);
-            updateFormVisibility();
-        });
-
-        // Event listener for Is Group Tour radio buttons
-        isGroupTourRadioGroup.addEventListener('change', (event) => {
-            isGroupTour = event.target.value;
-            console.log("Is Group Tour changed to:", isGroupTour);
-            updateGroupTourVisibility();
-        });
-
-        // --- Backend URL ---
-        const backendWebAppUrl = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
-
-        // Modified handleSubmit to use the real Apps Script backendWebAppUrl
-        paymentForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            console.log("Form submission triggered.");
-
-            submitButton.disabled = true;
-            submitButton.textContent = 'Submitting...';
-            submitResultMessage.classList.add('hidden');
-
-            // Build payload manually to ensure correct structure for Apps Script
-            const payload = {};
-            payload.company = "Anurag Maheshwari and Company";
-            payload.type = currentFormType; // Add type to payload
-
-            if (currentFormType === 'traveler') {
-                payload.tourId = document.getElementById('tourId').value;
-                payload.entryDate = document.getElementById('entryDate').value;
-                payload.paymentStatus = document.getElementById('paymentStatusTraveler').value;
-                payload.paymentMode = document.getElementById('paymentMode').value;
-                payload.paymentType = document.getElementById('paymentType').value;
-                payload.bankName = document.getElementById('bankName').value;
-                payload.otherDetails = document.getElementById('otherDetails').value;
-                payload.receiptNumber = document.getElementById('receiptNumber').value; // Add receipt number to payload
-
-                if (isGroupTour === 'yes') {
-                    payload.isGroupTour = true;
-                    payload.groupName = document.getElementById('travelerOrGroupName').value || 'N/A';
-                    payload.groupMembers = [];
-                    let totalGroupAmount = 0;
-                    let atLeastOneMemberProvided = false;
-
-                    for (let i = 1; i <= currentMemberCount; i++) {
-                        const nameInput = document.getElementById(`groupName${i}`);
-                        const amountInput = document.getElementById(`groupAmount${i}`);
-                        const dateInput = document.getElementById(`groupDate${i}`);
-                        const bankInput = document.getElementById(`groupBank${i}`);
-
-                        const name = nameInput ? nameInput.value : '';
-                        const amount = amountInput ? amountInput.value : '';
-                        const date = dateInput ? dateInput.value : '';
-                        const bank = bankInput ? bankInput.value : '';
-
-                        if (name && amount && !isNaN(parseFloat(amount))) {
-                            const memberData = {
-                                name: name,
-                                amount: parseFloat(amount),
-                                date: date || '',
-                                bank: bank || ''
-                            };
-                            payload.groupMembers.push(memberData);
-                            totalGroupAmount += parseFloat(amount);
-                            atLeastOneMemberProvided = true;
-                        } else if (name || amount) {
-                             submitResultMessage.textContent = `Please provide both Name and a valid Amount for Member ${i}.`;
-                             submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
-                             submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                             submitButton.disabled = false;
-                             submitButton.textContent = 'Submit Payment';
-                             return;
-                        }
-                    }
-                    
-                    if (!atLeastOneMemberProvided && currentMemberCount > 0) {
-                        submitResultMessage.textContent = 'Please enter details for at least one group member.';
-                        submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
-                        submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                        submitButton.disabled = false;
-                             submitButton.textContent = 'Submit Payment';
-                        return;
-                    }
-                    
-                    payload.totalAmount = totalGroupAmount;
-                } else {
-                    payload.isGroupTour = false;
-                    payload.travelerOrGroupName = document.getElementById('travelerOrGroupName').value;
-                    payload.totalAmount = parseFloat(document.getElementById('totalAmount').value);
-                }
-            } else { // Vendor form logic
-                payload.tourId = document.getElementById('vendorTourId').value;
-                payload.otherDetails = document.getElementById('vendorOtherDetails').value;
-
-                payload.services = [];
-                let totalVendorAmount = 0;
-                let atLeastOneServiceProvided = false;
-
-                const serviceRows = vendorServicesContainer.querySelectorAll('.space-y-4.pb-4');
-                if (serviceRows.length === 0) {
-                    submitResultMessage.textContent = 'Please add at least one vendor service.';
-                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
-                    submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Submit Payment';
-                    return;
-                }
-
-                serviceRows.forEach((row, index) => {
-                    const serviceType = row.querySelector(`select[name="serviceType${index + 1}"]`).value;
-                    const vendorName = row.querySelector(`input[name="vendorName${index + 1}"]`).value;
-                    const date = row.querySelector(`input[name="serviceDate${index + 1}"]`).value;
-                    const amount = row.querySelector(`input[name="serviceAmount${index + 1}"]`).value;
-                    const paymentMethod = row.querySelector(`select[name="paymentMethod${index + 1}"]`).value;
-                    const bankTxnDetails = row.querySelector(`input[name="bankTxnDetails${index + 1}"]`).value;
-
-                    if (serviceType && vendorName && amount && !isNaN(parseFloat(amount))) {
-                        const serviceData = {
-                            serviceType: serviceType,
-                            vendorName: vendorName,
-                            date: date || '',
-                            amount: parseFloat(amount),
-                            paymentMethod: paymentMethod || '',
-                            bankTxnDetails: bankTxnDetails || ''
-                        };
-                        payload.services.push(serviceData);
-                        totalVendorAmount += parseFloat(amount);
-                        atLeastOneServiceProvided = true;
-                    } else if (serviceType || vendorName || amount) {
-                        submitResultMessage.textContent = `Please ensure Service Type, Vendor Name, and Amount are filled correctly for Service ${index + 1}.`;
-                        submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
-                        submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                        submitButton.disabled = false;
-                        submitButton.textContent = 'Submit Payment';
-                        return;
-                    }
-                });
-
-                if (!atLeastOneServiceProvided && serviceRows.length > 0) {
-                     submitResultMessage.textContent = 'Please provide details for at least one service.';
-                     submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-green-300');
-                     submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                     submitButton.disabled = false;
-                     submitButton.textContent = 'Submit Payment';
-                     return;
-                }
-                
-                payload.totalAmount = totalVendorAmount;
-            }
-
-            console.log("Payload to be sent:", payload);
-
-            // --- IFRAME SUBMISSION LOGIC ---
-            const form = document.createElement('form');
-            form.action = backendWebAppUrl;
-            form.method = 'POST';
-            form.target = 'hiddenIframe'; // Target the hidden iframe
-            form.style.display = 'none'; // Hide the form itself
-
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'jsonPayload'; // Name of the parameter Apps Script expects in e.parameter
-            input.value = JSON.stringify(payload); // Stringify the entire payload
-
-            form.appendChild(input);
-            document.body.appendChild(form); // Append to body to make it part of DOM
-
-            // Submit the form
-            form.submit();
-
-            // Handle response via iframe onload (Apps Script sends back success/failure)
-            const hiddenIframe = document.getElementById('hiddenIframe');
-            let iframeLoadTimeout;
-
-            // Clear previous listeners to avoid multiple calls
-            hiddenIframe.onload = null; 
-            
-            // Set a timeout for the iframe load to handle potential non-response or long delays
-            iframeLoadTimeout = setTimeout(() => {
-                console.warn("Iframe load timed out. Check Apps Script logs for errors.");
-                submitResultMessage.textContent = 'Submission timed out. Please check Apps Script logs or network.';
-                submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
-                submitResultMessage.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
-                submitButton.disabled = false;
-                submitButton.textContent = 'Submit Payment';
-                document.body.removeChild(form); // Clean up the dynamic form
-            }, 10000); // 10 second timeout
-
-            hiddenIframe.onload = () => {
-                clearTimeout(iframeLoadTimeout); // Clear timeout on successful load
-                try {
-                    // Attempt to read response from iframe. This is tricky due to same-origin policy.
-                    // Google Apps Script usually redirects after a successful POST via form,
-                    // so direct reading of content might not be possible for status.
-                    // Instead, rely on Apps Script's Logger.log for success or sheet data.
-                    
-                    // Since direct reading is often blocked, we'll assume success if no JS error occurs.
-                    // A more robust solution would involve Apps Script redirecting to a success/failure page
-                    // on your domain with parameters, or using Google.script.run for web apps.
-                    
-                    submitResultMessage.textContent = 'Payment recorded successfully (via iframe)!';
-                    submitResultMessage.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'border-red-300');
-                    submitResultMessage.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-300');
-                    console.log("Form submission successful (via iframe). Check Google Sheet.");
-
-                    // Reset form fields after success (same as fetch success)
-                    if (currentFormType === 'traveler') {
-                        document.getElementById('tourId').value = '';
-                        tourDestinationImage.style.display = 'none';
-                        tourDestinationImage.src = '';
-                        paymentStatusTravelerSelect.value = 'advance';
-                        document.getElementById('travelerOrGroupName').value = '';
-                        document.getElementById('totalAmount').value = '';
-                        document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-                        document.getElementById('groupNo').checked = true;
-                        isGroupTour = 'no';
-                        updateGroupTourVisibility();
-                        document.getElementById('paymentMode').value = 'cash';
-                        document.getElementById('paymentType').value = '';
-                        document.getElementById('bankName').value = '';
-                        document.getElementById('otherDetails').value = '';
-                        // Increment receipt number and update field after successful submission for traveler
-                        if (receiptNumberInput) { // Ensure element exists
-                            incrementAndSaveReceiptNumber();
-                            updateReceiptNumberField();
-                        }
-                    } else { // Vendor form reset
-                        vendorTourIdInput.value = '';
-                        vendorOtherDetailsInput.value = '';
-                        clearVendorServices();
-                        addVendorServiceRow();
-                    }
-
-                } catch (iframeError) {
-                    // This catch block might not be reachable due to cross-origin restrictions
-                    console.error("Error reading iframe response:", iframeError);
-                    submitResultMessage.textContent = 'Payment submitted (via iframe), but response could not be confirmed. Check Google Sheet.';
-                    submitResultMessage.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'border-red-300');
-                    submitResultMessage.classList.add('bg-yellow-600', 'text-white'); // Use a warning color
-                } finally {
-                    submitButton.disabled = false;
-                    submitButton.textContent = 'Submit Payment';
-                    document.body.removeChild(form); // Clean up the dynamic form
-                }
-            };
-        });
-
-        // Initial setup on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            updateFormVisibility();
-            document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
-            // Set initial receipt number when the page loads
-            updateReceiptNumberField(); 
-        });
-    </script>
+        payload.services.push({ serviceType: sType, vendorName: vendor, date, amount: parseFloat(amt), paymentMethod: pm, bankTxnDetails: txn });
+        totalAmt += parseFloat(amt);
+      }
+    });
+    if (!valid) { btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
+    if (!payload.services.length) { showResult('Add at least one vendor service.', 'error'); btn.disabled=false; btn.textContent='Submit Vendor Payment ₹ →'; return; }
+    payload.totalAmount = totalAmt;
+  }
+
+  // ── iframe submission ──
+  const form = document.createElement('form');
+  form.action = BACKEND; form.method = 'POST'; form.target = 'hiddenIframe'; form.style.display = 'none';
+  const inp = document.createElement('input');
+  inp.type = 'hidden'; inp.name = 'jsonPayload'; inp.value = JSON.stringify(payload);
+  form.appendChild(inp); document.body.appendChild(form); form.submit();
+
+  const iframe = document.getElementById('hiddenIframe');
+  iframe.onload = null;
+  const timeout = setTimeout(() => {
+    showResult('Submission timed out. Please check the Google Sheet.', 'warning');
+    btn.disabled = false;
+    btn.textContent = currentMode === 'traveler' ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
+    document.body.removeChild(form);
+  }, 10000);
+
+  iframe.onload = () => {
+    clearTimeout(timeout);
+    try {
+      // Save tour ID to history on successful traveler submission
+      if (currentMode === 'traveler') {
+        saveTourId(payload.tourId);
+        bumpReceiptNum(); refreshReceiptNum();
+        refreshDatalistAndChips();
+        // Reset form
+        document.getElementById('tourId').value = '';
+        document.getElementById('tourIdClear').style.display = 'none';
+        document.getElementById('travelerOrGroupName').value = '';
+        document.getElementById('totalAmount').value = '';
+        document.getElementById('otherDetails').value = '';
+        document.getElementById('paymentType').value = '';
+        document.getElementById('bankName').value = '';
+        document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('paymentStatusTraveler').value = 'advance';
+        document.getElementById('pmCash').checked = true;
+        document.getElementById('bankDetailsRow').classList.add('hidden');
+        document.getElementById('grpNo').checked = true;
+        isGroupTour = false;
+        document.getElementById('singleTravelerBlock').classList.remove('hidden');
+        document.getElementById('groupTravelerBlock').classList.add('hidden');
+        document.getElementById('groupMembersContainer').innerHTML = '';
+        memberCount = 0;
+        document.getElementById('addMemberBtn').classList.remove('hidden');
+        document.getElementById('memberLimitMsg').classList.add('hidden');
+        showResult('✅ Receipt recorded successfully! Sheet updated.', 'success');
+      } else {
+        // Vendor: save tour id too so future entries can find it
+        saveTourId(payload.tourId);
+        refreshDatalistAndChips();
+        // Reset vendor form
+        document.getElementById('vendorTourId').value = '';
+        document.getElementById('vendorOtherDetails').value = '';
+        document.getElementById('reconWarn').classList.remove('show');
+        document.getElementById('reconOk').classList.remove('show');
+        document.getElementById('vendorServicesContainer').innerHTML = '';
+        serviceCount = 0;
+        document.getElementById('addServiceBtn').classList.remove('hidden');
+        document.getElementById('serviceLimitMsg').classList.add('hidden');
+        addServiceRow();
+        showResult('✅ Vendor payment recorded successfully! Sheet updated.', 'success');
+      }
+    } catch(err) {
+      showResult('Submitted (response unconfirmed). Please verify in Google Sheet.', 'warning');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = currentMode === 'traveler' ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
+      document.body.removeChild(form);
+    }
+  };
+});
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
+  refreshReceiptNum();
+  refreshDatalistAndChips();
+  addServiceRow(); // default one vendor service row
+});
+</script>
 </body>
 </html>
