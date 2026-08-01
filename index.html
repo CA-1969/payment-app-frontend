@@ -150,6 +150,36 @@
     .success-box { background:#f0fdf4; border:2px solid #6ee7b7; border-radius:14px; padding:18px; text-align:center; display:none; margin-top:14px; }
     .success-box.show { display:block; }
 
+
+    /* ── Dashboard ── */
+    .mode-btn.d-active { background: linear-gradient(135deg,#0369a1,#0ea5e9); color:#fff; }
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+    @media(max-width:640px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+    .stat-card { background:#fff; border-radius:14px; padding:16px; box-shadow:var(--shadow); border:1px solid #e8edf2; }
+    .stat-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.7px; color:#6b7280; margin-bottom:6px; }
+    .stat-value { font-size:1.25rem; font-weight:800; }
+    .stat-sub   { font-size:.72rem; color:#9ca3af; margin-top:3px; }
+    .dash-table-wrap { background:#fff; border-radius:14px; box-shadow:var(--shadow); border:1px solid #e8edf2; overflow:hidden; }
+    .dash-table-hd { padding:14px 18px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .dash-search { height:36px; padding:0 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:.82rem; outline:none; width:200px; }
+    .dash-search:focus { border-color:var(--blue); }
+    table.dtable { width:100%; border-collapse:collapse; font-size:.8rem; }
+    table.dtable th { background:#f8fafc; padding:10px 14px; text-align:left; font-size:.72rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; border-bottom:2px solid #e8edf2; white-space:nowrap; }
+    table.dtable td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    table.dtable tr:last-child td { border-bottom:none; }
+    table.dtable tr:hover td { background:#f8fafc; }
+    .tour-name-cell { font-weight:600; color:#111827; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bal-pill { display:inline-flex; align-items:center; gap:4px; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; }
+    .pill-green  { background:#d1fae5; color:#065f46; }
+    .pill-red    { background:#fee2e2; color:#991b1b; }
+    .pill-amber  { background:#fef3c7; color:#92400e; }
+    .pill-blue   { background:#dbeafe; color:#1e40af; }
+    .dash-empty  { text-align:center; padding:40px; color:#9ca3af; font-size:.875rem; }
+    .refresh-btn { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border-radius:8px; border:1.5px solid #d1d5db; font-size:.75rem; font-weight:600; color:#374151; cursor:pointer; background:#fff; transition:all .15s; }
+    .refresh-btn:hover { border-color:var(--blue); color:var(--blue); }
+    .sort-arrow { cursor:pointer; user-select:none; }
+    .sort-arrow:hover { color:var(--blue); }
+
     .hidden { display:none !important; }
     .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
   </style>
@@ -188,6 +218,9 @@
       </button>
       <button class="mode-btn" id="btnL" onclick="switchMode('ledger')">
         <span class="mode-icon">📊</span>Tour Ledger PDF
+      </button>
+      <button class="mode-btn" id="btnD" onclick="switchMode('dashboard')">
+        <span class="mode-icon">📈</span>Dashboard
       </button>
     </div>
   </div>
@@ -434,6 +467,59 @@
 
     </div><!-- /ledgerSection -->
 
+
+    <!-- ═══════ DASHBOARD SECTION ═══════ -->
+    <div id="dashboardSection" class="hidden">
+
+      <!-- Summary stat cards — staff view only -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;">
+        <div class="stat-card">
+          <div class="stat-label">📋 Total Tours</div>
+          <div class="stat-value bal-blue" id="dsTourCount">—</div>
+          <div class="stat-sub">on record in sheet</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">⚠️ Need Attention</div>
+          <div class="stat-value" id="dsAlert" style="color:#d97706;">—</div>
+          <div class="stat-sub">imbalance or no receipt</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">✅ Settled Tours</div>
+          <div class="stat-value" id="dsSettled" style="color:#059669;">—</div>
+          <div class="stat-sub">receipts = payments</div>
+        </div>
+      </div>
+
+      <!-- Tour-wise table -->
+      <div class="dash-table-wrap">
+        <div class="dash-table-hd">
+          <span class="stag" style="background:#dbeafe;color:#1e40af;">📋 All Tours — Live from Sheet</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="text" class="dash-search" id="dashSearch" placeholder="🔍 Search tour…" oninput="renderDashTable()">
+            <button class="refresh-btn" onclick="refreshDash()">↺ Refresh</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="dtable" id="dashTable">
+            <thead>
+              <tr>
+                <th class="sort-arrow" onclick="sortDash('id')"># Tour ID ↕</th>
+                <th class="sort-arrow" onclick="sortDash('receipts')" style="text-align:right;">Receipts ↕</th>
+                <th class="sort-arrow" onclick="sortDash('payments')" style="text-align:right;">Payments ↕</th>
+                <th class="sort-arrow" onclick="sortDash('net')" style="text-align:right;">Balance ↕</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dashTbody">
+              <tr><td colspan="5" class="dash-empty">Loading data from Sheet…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="dashFooter" style="padding:10px 18px;font-size:.72rem;color:#9ca3af;border-top:1px solid #f1f5f9;"></div>
+      </div>
+
+    </div><!-- /dashboardSection -->
+
     <button type="submit" class="sub-btn r" id="submitBtn">Submit Receipt ₹ →</button>
     <div class="result" id="resultMsg"></div>
 
@@ -620,19 +706,23 @@ function showBalanceCard(tourId, receipts, payments) {
 // ═══════════════════════════════════════════════════════════════
 function switchMode(mode) {
   currentMode = mode;
-  const isTrav   = mode === 'traveler';
-  const isVendor = mode === 'vendor';
-  const isLedger = mode === 'ledger';
-  document.getElementById('travelerSection').classList.toggle('hidden', !isTrav);
-  document.getElementById('vendorSection').classList.toggle('hidden',   !isVendor);
-  document.getElementById('ledgerSection').classList.toggle('hidden',   !isLedger);
-  document.getElementById('submitBtn').classList.toggle('hidden',        isLedger);
-  document.getElementById('btnR').className = 'mode-btn' + (isTrav   ? ' r-active' : '');
-  document.getElementById('btnP').className = 'mode-btn' + (isVendor  ? ' p-active' : '');
-  document.getElementById('btnL').className = 'mode-btn' + (isLedger  ? ' l-active' : '');
+  const isTrav  = mode === 'traveler';
+  const isVend  = mode === 'vendor';
+  const isLedge = mode === 'ledger';
+  const isDash  = mode === 'dashboard';
+  document.getElementById('travelerSection').classList.toggle('hidden',  !isTrav);
+  document.getElementById('vendorSection').classList.toggle('hidden',    !isVend);
+  document.getElementById('ledgerSection').classList.toggle('hidden',    !isLedge);
+  document.getElementById('dashboardSection').classList.toggle('hidden', !isDash);
+  document.getElementById('submitBtn').classList.toggle('hidden', isLedge || isDash);
+  document.getElementById('btnR').className = 'mode-btn' + (isTrav  ? ' r-active' : '');
+  document.getElementById('btnP').className = 'mode-btn' + (isVend  ? ' p-active' : '');
+  document.getElementById('btnL').className = 'mode-btn' + (isLedge ? ' l-active' : '');
+  document.getElementById('btnD').className = 'mode-btn' + (isDash  ? ' d-active' : '');
   const btn = document.getElementById('submitBtn');
   btn.className   = 'sub-btn ' + (isTrav ? 'r' : 'p');
   btn.textContent = isTrav ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
+  if (isDash) renderDashboard();
   hideResult();
 }
 
@@ -1016,6 +1106,103 @@ function resetLedgerForm() {
   document.getElementById('ledgerPreview').classList.remove('show');
   document.getElementById('ledgerSuccess').classList.remove('show');
   lastWaSummary = '';
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+let dashSortKey = 'net';
+let dashSortAsc = true;
+
+function renderDashboard() {
+  if (!liveLoaded) { setTimeout(renderDashboard, 600); return; }
+
+  const ids = Object.keys(liveData);
+  let totalRec = 0, totalPay = 0, alertCount = 0;
+
+  ids.forEach(id => {
+    const d = liveData[id];
+    if (!d) return;
+    totalRec += d.receipts || 0;
+    totalPay += d.payments || 0;
+    const net = (d.receipts || 0) - (d.payments || 0);
+    if (Math.abs(net) > 0) alertCount++;
+  });
+
+  const totalNet = totalRec - totalPay;
+
+  let settledCount = 0;
+  ids.forEach(id => {
+    const d = liveData[id];
+    if (!d) return;
+    if (((d.receipts||0) - (d.payments||0)) === 0 && (d.receipts||0) > 0) settledCount++;
+  });
+  document.getElementById('dsTourCount').textContent = ids.length;
+  document.getElementById('dsAlert').textContent     = alertCount;
+  document.getElementById('dsSettled').textContent   = settledCount;
+
+  renderDashTable();
+
+  const now = new Date();
+  document.getElementById('dashFooter').textContent =
+    'Last refreshed: ' + now.toLocaleTimeString('en-IN') + '  ·  ' + ids.length + ' tours';
+}
+
+function renderDashTable() {
+  const search = (document.getElementById('dashSearch').value || '').toLowerCase();
+  const tbody  = document.getElementById('dashTbody');
+
+  let rows = Object.entries(liveData)
+    .filter(([id]) => !search || id.toLowerCase().includes(search))
+    .map(([id, d]) => ({
+      id,
+      receipts: (d && d.receipts) || 0,
+      payments: (d && d.payments) || 0,
+      net:      ((d && d.receipts) || 0) - ((d && d.payments) || 0)
+    }));
+
+  // Sort
+  rows.sort((a, b) => {
+    const av = dashSortKey === 'id' ? a.id : a[dashSortKey];
+    const bv = dashSortKey === 'id' ? b.id : b[dashSortKey];
+    if (dashSortKey === 'id') return dashSortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    return dashSortAsc ? av - bv : bv - av;
+  });
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="dash-empty">No tours found' + (search ? ' matching "' + search + '"' : '') + '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const noRec   = r.receipts === 0 && r.payments > 0;
+    const surplus = r.net > 0;
+    const settled = r.net === 0;
+    const deficit = r.net < 0;
+    const pillClass = noRec ? 'pill-amber' : surplus ? 'pill-green' : settled ? 'pill-blue' : 'pill-red';
+    const pillText  = noRec ? '⚠ No Receipt' : surplus ? '✔ Surplus' : settled ? '◉ Settled' : '✕ Deficit';
+    const netColor  = deficit || noRec ? 'color:#dc2626;' : surplus ? 'color:#059669;' : 'color:#0369a1;';
+    return \`<tr>
+      <td><span class="tour-name-cell" title="\${r.id}">\${i+1}. \${r.id}</span></td>
+      <td style="text-align:right;color:#059669;font-weight:600;">\${fmt(r.receipts)}</td>
+      <td style="text-align:right;color:#dc2626;font-weight:600;">\${fmt(r.payments)}</td>
+      <td style="text-align:right;font-weight:700;\${netColor}">\${fmt(Math.abs(r.net))}</td>
+      <td><span class="bal-pill \${pillClass}">\${pillText}</span></td>
+    </tr>\`;
+  }).join('');
+}
+
+function sortDash(key) {
+  if (dashSortKey === key) { dashSortAsc = !dashSortAsc; }
+  else { dashSortKey = key; dashSortAsc = key === 'id'; }
+  renderDashTable();
+}
+
+function refreshDash() {
+  document.getElementById('dashTbody').innerHTML = '<tr><td colspan="5" class="dash-empty">Refreshing from Sheet…</td></tr>';
+  fetchLiveData().then ? fetchLiveData().then(renderDashboard) : fetchLiveData();
+  setTimeout(renderDashboard, 2500);
 }
 
 // ═══════════════════════════════════════════════════════════════
