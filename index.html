@@ -161,14 +161,26 @@
     .stat-sub   { font-size:.72rem; color:#9ca3af; margin-top:3px; }
     .dash-table-wrap { background:#fff; border-radius:14px; box-shadow:var(--shadow); border:1px solid #e8edf2; overflow:hidden; }
     .dash-table-hd { padding:14px 18px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-    .dash-search { height:36px; padding:0 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:.82rem; outline:none; width:200px; }
+    .dash-search { height:36px; padding:0 12px; border:1.5px solid #d1d5db; border-radius:8px; font-size:.82rem; outline:none; width:160px; }
     .dash-search:focus { border-color:var(--blue); }
-    table.dtable { width:100%; border-collapse:collapse; font-size:.8rem; }
-    table.dtable th { background:#f8fafc; padding:10px 14px; text-align:left; font-size:.72rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.5px; border-bottom:2px solid #e8edf2; white-space:nowrap; }
-    table.dtable td { padding:10px 14px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    .dtable-scroll { overflow-x:auto; width:100%; -webkit-overflow-scrolling:touch; }
+    table.dtable { width:100%; min-width:640px; border-collapse:collapse; font-size:.8rem; table-layout:fixed; }
+    table.dtable colgroup col:nth-child(1) { width:36%; }
+    table.dtable colgroup col:nth-child(2) { width:16%; }
+    table.dtable colgroup col:nth-child(3) { width:16%; }
+    table.dtable colgroup col:nth-child(4) { width:16%; }
+    table.dtable colgroup col:nth-child(5) { width:16%; }
+    table.dtable th { background:#f8fafc; padding:9px 10px; text-align:left; font-size:.7rem; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:.4px; border-bottom:2px solid #e8edf2; white-space:nowrap; }
+    table.dtable td { padding:9px 10px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
     table.dtable tr:last-child td { border-bottom:none; }
     table.dtable tr:hover td { background:#f8fafc; }
-    .tour-name-cell { font-weight:600; color:#111827; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .tour-name-cell { font-weight:600; color:#111827; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    @media print {
+      body * { visibility:hidden !important; }
+      #printArea, #printArea * { visibility:visible !important; }
+      #printArea { position:fixed; top:0; left:0; width:100%; }
+      .bal-pill { border:1px solid #ccc !important; }
+    }
     .bal-pill { display:inline-flex; align-items:center; gap:4px; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap; }
     .pill-green  { background:#d1fae5; color:#065f46; }
     .pill-red    { background:#fee2e2; color:#991b1b; }
@@ -495,12 +507,16 @@
         <div class="dash-table-hd">
           <span class="stag" style="background:#dbeafe;color:#1e40af;">📋 All Tours — Live from Sheet</span>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="text" class="dash-search" id="dashSearch" placeholder="🔍 Search tour…" oninput="renderDashTable()">
+            <select id="fyFilter" class="dash-search" style="width:130px;cursor:pointer;" onchange="renderDashTable()">
+              <option value="all">All Years</option>
+            </select>
+            <input type="text" class="dash-search" id="dashSearch" placeholder="🔍 Search…" oninput="renderDashTable()">
             <button class="refresh-btn" onclick="refreshDash()">↺ Refresh</button>
+            <button class="refresh-btn" onclick="printDash()" style="border-color:#7c3aed;color:#7c3aed;">🖨 PDF / Print</button>
           </div>
         </div>
-        <div style="overflow-x:auto;">
-          <table class="dtable" id="dashTable">
+        <div class="dtable-scroll" id="printArea">
+          <table class="dtable" id="dashTable"><colgroup><col><col><col><col><col></colgroup>
             <thead>
               <tr>
                 <th class="sort-arrow" onclick="sortDash('id')"># Tour ID ↕</th>
@@ -543,6 +559,7 @@ const MAX_SERVICES  = 20;
 let liveData = {};     // { "GOA/SHARMA/GRP": { receipts:85000, payments:72000 }, … }
 let liveTourIds = [];  // sorted list
 let liveLoaded  = false;
+let liveFyData  = {};
 
 // ── State ──
 let currentMode = 'traveler';
@@ -561,6 +578,15 @@ function fetchLiveData() {
       if (data.success) {
         liveData    = data.tours   || {};
         liveTourIds = data.tourIds || [];
+        liveFyData  = data.fyTours || {};
+        // Populate FY dropdown
+        const fySelect = document.getElementById('fyFilter');
+        if (fySelect && data.fyList && data.fyList.length) {
+          const currentVal = fySelect.value;
+          fySelect.innerHTML = '<option value="all">All Years</option>' +
+            data.fyList.slice().reverse().map(fy => '<option value="' + fy + '">' + fy + '</option>').join('');
+          if (currentVal && currentVal !== 'all') fySelect.value = currentVal;
+        }
         liveLoaded  = true;
         setSyncState('ok', `Sheet synced · ${liveTourIds.length} tours`);
         populateDatalistsAndChips();
@@ -1118,11 +1144,14 @@ let dashSortAsc = true;
 function renderDashboard() {
   if (!liveLoaded) { setTimeout(renderDashboard, 600); return; }
 
-  const ids = Object.keys(liveData);
+  const fyFilter = document.getElementById('fyFilter');
+  const selFY    = fyFilter ? fyFilter.value : 'all';
+  const activeData = (selFY !== 'all' && liveFyData[selFY]) ? liveFyData[selFY] : liveData;
+  const ids = Object.keys(activeData);
   let totalRec = 0, totalPay = 0, alertCount = 0;
 
   ids.forEach(id => {
-    const d = liveData[id];
+    const d = activeData[id];
     if (!d) return;
     totalRec += d.receipts || 0;
     totalPay += d.payments || 0;
@@ -1134,7 +1163,7 @@ function renderDashboard() {
 
   let settledCount = 0;
   ids.forEach(id => {
-    const d = liveData[id];
+    const d = activeData[id];
     if (!d) return;
     if (((d.receipts||0) - (d.payments||0)) === 0 && (d.receipts||0) > 0) settledCount++;
   });
@@ -1153,7 +1182,10 @@ function renderDashTable() {
   const search = (document.getElementById('dashSearch').value || '').toLowerCase();
   const tbody  = document.getElementById('dashTbody');
 
-  let rows = Object.entries(liveData)
+  const fyF = document.getElementById('fyFilter');
+  const selFYT = fyF ? fyF.value : 'all';
+  const srcData = (selFYT !== 'all' && liveFyData[selFYT]) ? liveFyData[selFYT] : liveData;
+  let rows = Object.entries(srcData)
     .filter(([id]) => !search || id.toLowerCase().includes(search))
     .map(([id, d]) => ({
       id,
@@ -1203,6 +1235,69 @@ function refreshDash() {
   document.getElementById('dashTbody').innerHTML = '<tr><td colspan="5" class="dash-empty">Refreshing from Sheet…</td></tr>';
   fetchLiveData().then ? fetchLiveData().then(renderDashboard) : fetchLiveData();
   setTimeout(renderDashboard, 2500);
+}
+
+
+function printDash() {
+  const fyF  = document.getElementById('fyFilter');
+  const selFY = fyF ? fyF.value : 'all';
+  const srcData = (selFY !== 'all' && liveFyData[selFY]) ? liveFyData[selFY] : liveData;
+  const search  = (document.getElementById('dashSearch').value || '').toLowerCase();
+  const fyLabel = selFY === 'all' ? 'All Financial Years' : 'Financial Year ' + selFY;
+
+  let rows = Object.entries(srcData)
+    .filter(([id]) => !search || id.toLowerCase().includes(search))
+    .map(([id, d]) => ({
+      id, receipts:(d&&d.receipts)||0, payments:(d&&d.payments)||0,
+      net:((d&&d.receipts)||0)-((d&&d.payments)||0)
+    }))
+    .sort((a,b) => a.net - b.net);
+
+  let totalRec = 0, totalPay = 0;
+  rows.forEach(r => { totalRec += r.receipts; totalPay += r.payments; });
+  const totalNet = totalRec - totalPay;
+
+  const tableRows = rows.map((r,i) => {
+    const noRec   = r.receipts === 0 && r.payments > 0;
+    const surplus = r.net > 0;
+    const settled = r.net === 0 && r.receipts > 0;
+    const pillText = noRec ? 'No Receipt' : surplus ? 'Surplus' : settled ? 'Settled' : 'Deficit';
+    const netColor = (r.net < 0 || noRec) ? '#dc2626' : r.net > 0 ? '#059669' : '#0369a1';
+    return '<tr>'
+      + '<td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;">' + (i+1) + '. ' + r.id + '</td>'
+      + '<td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;color:#059669;">' + fmt(r.receipts) + '</td>'
+      + '<td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;color:#dc2626;">' + fmt(r.payments) + '</td>'
+      + '<td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:700;color:' + netColor + ';">' + fmt(Math.abs(r.net)) + '</td>'
+      + '<td style="padding:7px 10px;border-bottom:1px solid #e5e7eb;">' + pillText + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const win = window.open('', '_blank');
+  win.document.write('<!DOCTYPE html><html><head><title>Dream Destination – Dashboard ' + fyLabel + '</title>'
+    + '<style>body{font-family:Arial,sans-serif;margin:30px;color:#111;}h2{color:#0c4a6e;margin:0;}h3{color:#1e40af;margin:8px 0 4px;}'
+    + 'table{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px;}'
+    + 'th{background:#f1f5f9;padding:8px 10px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #d1d5db;}'
+    + 'td{padding:7px 10px;border-bottom:1px solid #e5e7eb;} tr:last-child td{border-bottom:2px solid #374151;font-weight:700;}'
+    + '.header{border-bottom:2px solid #0369a1;padding-bottom:10px;margin-bottom:16px;}'
+    + '.sub{color:#555;font-size:11px;margin:2px 0;}.net{font-size:13px;font-weight:800;}'
+    + '@media print{@page{margin:15mm;}}</style></head><body>'
+    + '<div class="header"><h2>DREAM DESTINATION</h2>'
+    + '<p class="sub">Opp. Narayan Puri Mandir Gate, Shop No. 17, Krishna Complex, Court Road, Saharanpur – 247001</p>'
+    + '<p class="sub">Property : M/s Anurag Maheshwari and Company, Chartered Accountants, Saharanpur</p></div>'
+    + '<h3>TOUR-WISE DASHBOARD — ' + fyLabel.toUpperCase() + '</h3>'
+    + '<p style="font-size:11px;color:#6b7280;">Generated: ' + new Date().toLocaleString('en-IN') + ' &nbsp;|&nbsp; Total Tours: ' + rows.length + '</p>'
+    + '<table><thead><tr><th>#&nbsp;Tour ID</th><th style="text-align:right;">Receipts (₹)</th><th style="text-align:right;">Payments (₹)</th><th style="text-align:right;">Balance (₹)</th><th>Status</th></tr></thead>'
+    + '<tbody>' + tableRows + '<tr>'
+    + '<td style="padding:8px 10px;font-weight:700;">TOTAL (' + rows.length + ' tours)</td>'
+    + '<td style="padding:8px 10px;text-align:right;font-weight:700;color:#059669;">' + fmt(totalRec) + '</td>'
+    + '<td style="padding:8px 10px;text-align:right;font-weight:700;color:#dc2626;">' + fmt(totalPay) + '</td>'
+    + '<td style="padding:8px 10px;text-align:right;font-weight:800;color:' + (totalNet>=0?'#059669':'#dc2626') + ';">' + fmt(Math.abs(totalNet)) + '</td>'
+    + '<td style="padding:8px 10px;font-weight:700;">' + (totalNet>=0?'Surplus':'Deficit') + '</td>'
+    + '</tr></tbody></table>'
+    + '<p style="margin-top:20px;font-size:9px;color:#9ca3af;">Printed from Dream Destination Payment Tracker · M/s Anurag Maheshwari & Company, Saharanpur</p>'
+    + '</body></html>');
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 400);
 }
 
 // ═══════════════════════════════════════════════════════════════
