@@ -192,6 +192,17 @@
     .sort-arrow { cursor:pointer; user-select:none; }
     .sort-arrow:hover { color:var(--blue); }
 
+
+    /* ── Tour ID Builder ── */
+    .tour-builder-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:8px; }
+    @media(max-width:600px){ .tour-builder-row{ grid-template-columns:1fr; } }
+    .tour-id-preview { display:flex; align-items:center; gap:8px; background:#f0fdf4; border:1.5px solid #6ee7b7; border-radius:10px; padding:9px 14px; margin-top:6px; font-size:.82rem; flex-wrap:wrap; }
+    .tour-id-preview .preview-label { color:#6b7280; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.5px; }
+    .tour-id-preview .preview-value { color:#065f46; font-weight:800; font-size:.95rem; letter-spacing:.5px; }
+    .tour-id-preview.empty { background:#f8fafc; border-color:#d1d5db; }
+    .tour-id-preview.empty .preview-value { color:#9ca3af; }
+    .type-pill { display:inline-flex; gap:4px; font-size:.7rem; font-weight:600; color:#0369a1; background:#dbeafe; padding:2px 7px; border-radius:20px; }
+
     .hidden { display:none !important; }
     .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
   </style>
@@ -248,11 +259,43 @@
           <div class="g2">
             <div class="fg">
               <label class="fl">Tour ID <span class="req">*</span>
-                <span style="font-weight:400;color:#9ca3af;font-size:.7rem;"> e.g. GOA/SHARMA/GRP</span>
+                <span style="font-weight:400;color:#9ca3af;font-size:.7rem;">— fill the 3 parts below</span>
               </label>
-              <input type="text" id="tourId" class="fi rf" placeholder="Destination / Name / Type" autocomplete="off" list="tourIdDL">
+              <div class="tour-builder-row">
+                <div>
+                  <label class="fl" style="font-size:.72rem;">&#128205; Destination</label>
+                  <input type="text" id="tbDest" class="fi rf" placeholder="e.g. GOA, DUBAI" oninput="buildTourId()" style="text-transform:uppercase;">
+                </div>
+                <div>
+                  <label class="fl" style="font-size:.72rem;">&#128100; Customer Name</label>
+                  <input type="text" id="tbName" class="fi rf" placeholder="e.g. SHARMA" oninput="buildTourId()" style="text-transform:uppercase;">
+                </div>
+                <div>
+                  <label class="fl" style="font-size:.72rem;">&#127991; Type</label>
+                  <select id="tbType" class="fi rf" onchange="buildTourId()">
+                    <option value="">Select type...</option>
+                    <option value="IND">IND -- Individual</option>
+                    <option value="CPL">CPL -- Couple</option>
+                    <option value="FAM">FAM -- Family</option>
+                    <option value="GRP">GRP -- Group</option>
+                    <option value="CORP">CORP -- Corporate</option>
+                    <option value="HON">HON -- Honeymoon</option>
+                    <option value="PIL">PIL -- Pilgrimage</option>
+                    <option value="SCH">SCH -- School / College</option>
+                    <option value="FD">FD -- Fixed Departure</option>
+                    <option value="VIS">VIS -- Visa Only</option>
+                    <option value="TKT">TKT -- Ticket Only</option>
+                    <option value="HTL">HTL -- Hotel Only</option>
+                  </select>
+                </div>
+              </div>
+              <div class="tour-id-preview empty" id="tourIdPreview">
+                <span class="preview-label">Generated Tour ID:</span>
+                <span class="preview-value" id="tourIdPreviewVal">Fill all three fields above</span>
+              </div>
+              <input type="hidden" id="tourId">
               <datalist id="tourIdDL"></datalist>
-              <div id="tChips" class="chips"></div>
+              <div id="tChips" class="chips" style="margin-top:8px;"></div>
             </div>
             <div class="fg">
               <label class="fl">Receipt Number</label>
@@ -990,6 +1033,11 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
         populateDatalistsAndChips();
         // Reset traveler form
         document.getElementById('tourId').value = '';
+        document.getElementById('tbDest').value = '';
+        document.getElementById('tbName').value = '';
+        document.getElementById('tbType').value = '';
+        document.getElementById('tourIdPreviewVal').textContent = 'Fill all three fields above';
+        document.getElementById('tourIdPreview').classList.add('empty');
         document.getElementById('travelerOrGroupName').value = '';
         document.getElementById('totalAmount').value = '';
         document.getElementById('otherDetails').value = '';
@@ -1038,6 +1086,53 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
   };
 });
 
+
+
+// ── Tour ID Builder ───────────────────────────────────────────────
+function buildTourId() {
+  const dest  = (document.getElementById('tbDest').value  || '').trim().toUpperCase().replace(/\//g,'');
+  const name  = (document.getElementById('tbName').value  || '').trim().toUpperCase().replace(/\//g,'');
+  const type  = (document.getElementById('tbType').value  || '');
+  const preview = document.getElementById('tourIdPreview');
+  const previewVal = document.getElementById('tourIdPreviewVal');
+  const hiddenId = document.getElementById('tourId');
+
+  if (dest && name && type) {
+    const combined = dest + '/' + name + '/' + type;
+    hiddenId.value = combined;
+    previewVal.textContent = combined;
+    preview.classList.remove('empty');
+    preview.classList.add('show');
+  } else {
+    const partial = [dest, name, type].filter(Boolean).join('/');
+    previewVal.textContent = partial ? partial + '/…' : 'Fill all three fields above';
+    hiddenId.value = '';
+    preview.classList.add('empty');
+  }
+}
+
+function fillBuilderFromChip(tourId) {
+  // Try to decompose existing Tour ID back into builder fields
+  const parts = tourId.split('/');
+  const knownTypes = ['IND','CPL','FAM','GRP','CORP','HON','PIL','SCH','FD','VIS','TKT','HTL'];
+  // Last part may be the type
+  const lastPart = parts[parts.length - 1];
+  if (parts.length >= 2 && knownTypes.includes(lastPart)) {
+    document.getElementById('tbDest').value = parts[0];
+    document.getElementById('tbName').value = parts.slice(1, -1).join('/');
+    document.getElementById('tbType').value = lastPart;
+  } else {
+    // Can't decompose — fill destination with full ID, leave name/type for staff
+    document.getElementById('tbDest').value = parts[0] || tourId;
+    document.getElementById('tbName').value = parts.slice(1).join('/') || '';
+    document.getElementById('tbType').value = '';
+  }
+  // Directly set the hidden Tour ID too
+  document.getElementById('tourId').value = tourId;
+  document.getElementById('tourIdPreviewVal').textContent = tourId;
+  document.getElementById('tourIdPreview').classList.remove('empty');
+  buildTourId(); // re-render preview
+}
 
 // ═══════════════════════════════════════════════════════════════
 // LEDGER FUNCTIONS
