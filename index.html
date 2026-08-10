@@ -1774,8 +1774,8 @@ function renderFloatBalances() {
       + '<div style="display:flex;align-items:center;gap:10px;">'
       + '<div class="vbc-bal" style="color:' + balColor + ';">' + fmt2(bal) + '</div>'
       + '<div class="vbc-action">'
-      + '<button class="vbc-btn green" onclick="openReplenish('' + v + '')">+ Add Float</button>'
-      + '<button class="vbc-btn amber" onclick="openUtilise('' + v + '')">✈ Book / Use</button>'
+      + '<button class="vbc-btn green" data-vendor="' + v + '" onclick="openReplenish(this.dataset.vendor)">+ Add Float</button>'
+      + '<button class="vbc-btn amber" data-vendor="' + v + '" onclick="openUtilise(this.dataset.vendor)">&#9992; Book / Use</button>'
       + '</div></div></div>';
   }).join('');
 }
@@ -1804,7 +1804,7 @@ function renderCreditData() {
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:10px;">'
       + '<div class="vbc-bal" style="color:' + (out>0?'#dc2626':'#059669') + ';">' + fmt2(out) + '</div>'
-      + (out > 0 ? '<button class="vbc-btn blue" onclick="openSettle('' + v + '')">Settle ₹</button>' : '')
+      + (out > 0 ? '<button class="vbc-btn blue" data-vendor="' + v + '" onclick="openSettle(this.dataset.vendor)">Settle</button>' : '')
       + '</div></div>';
   }).join('');
 }
@@ -1829,7 +1829,7 @@ function renderPendingEntries() {
       + ' &nbsp;|&nbsp; <span style="color:#dc2626;font-weight:700;">' + fmt2(p.amount) + '</span>'
       + (p.remarks ? '<br><span style="color:#9ca3af;font-size:.75rem;">' + p.remarks + '</span>' : '')
       + '</div>'
-      + '<button class="vbc-btn blue" onclick="openLink(' + p.rowNumber + ','' + (p.serviceType||'') + '',' + p.amount + ','' + (p.traveller||'') + '','' + p.vendor + '')">🔗 Assign Tour ID</button>'
+      + '<button class="vbc-btn blue" data-row="' + p.rowNumber + '" data-svc="' + (p.serviceType||'') + '" data-amt="' + p.amount + '" data-trv="' + (p.traveller||'') + '" data-vendor="' + p.vendor + '" onclick="openLinkFromBtn(this)">&#128279; Assign Tour ID</button>'
       + '</div></div>';
   }).join('');
 }
@@ -1869,6 +1869,9 @@ function openSettle(vendor) {
   document.getElementById('stlRemarks').value = '';
   document.getElementById('stlResult').className = 'result hidden';
   document.getElementById('modalSettle').classList.add('open');
+}
+function openLinkFromBtn(btn) {
+  openLink(btn.dataset.row, btn.dataset.svc, btn.dataset.amt, btn.dataset.trv, btn.dataset.vendor);
 }
 function openLink(rowNum, svcType, amount, traveller, vendor) {
   document.getElementById('lnkRowNumber').value = rowNum;
