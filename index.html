@@ -203,6 +203,35 @@
     .tour-id-preview.empty .preview-value { color:#9ca3af; }
     .type-pill { display:inline-flex; gap:4px; font-size:.7rem; font-weight:600; color:#0369a1; background:#dbeafe; padding:2px 7px; border-radius:20px; }
 
+
+    /* ── Vendor Accounts ── */
+    .mode-btn.va-active { background:linear-gradient(135deg,#b45309,#d97706); color:#fff; }
+    .va-section-title { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#6b7280; padding:10px 0 6px; border-bottom:2px solid #f1f5f9; margin-bottom:14px; }
+    .vendor-bal-card { border-radius:12px; padding:14px 16px; border:2px solid; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .vendor-bal-card.healthy { border-color:#6ee7b7; background:#f0fdf9; }
+    .vendor-bal-card.low     { border-color:#fbbf24; background:#fffbeb; }
+    .vendor-bal-card.empty   { border-color:#fca5a5; background:#fff5f5; }
+    .vendor-bal-card.credit-ok  { border-color:#6ee7b7; background:#f0fdf9; }
+    .vendor-bal-card.credit-due { border-color:#fbbf24; background:#fffbeb; }
+    .vendor-bal-card.credit-over{ border-color:#fca5a5; background:#fff5f5; }
+    .vbc-name  { font-weight:700; font-size:.88rem; color:#111827; }
+    .vbc-sub   { font-size:.72rem; color:#6b7280; margin-top:2px; }
+    .vbc-bal   { font-size:1.1rem; font-weight:800; }
+    .vbc-action{ display:inline-flex; gap:6px; }
+    .vbc-btn   { padding:6px 12px; border-radius:8px; border:none; cursor:pointer; font-size:.75rem; font-weight:700; transition:all .15s; }
+    .vbc-btn.green  { background:#059669; color:#fff; }
+    .vbc-btn.amber  { background:#d97706; color:#fff; }
+    .vbc-btn.blue   { background:#0369a1; color:#fff; }
+    .vbc-btn:hover  { filter:brightness(1.1); }
+    .pending-row { background:#fff; border:1.5px solid #fde68a; border-radius:10px; padding:12px 14px; margin-bottom:8px; }
+    .pending-row-hd { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:6px; }
+    .pending-badge  { font-size:.68rem; font-weight:700; background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:20px; }
+    .va-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; align-items:center; justify-content:center; padding:16px; }
+    .va-modal.open { display:flex; }
+    .va-modal-box { background:#fff; border-radius:16px; padding:24px; max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.3); max-height:90vh; overflow-y:auto; }
+    .va-modal-title { font-size:1rem; font-weight:700; color:#111827; margin-bottom:16px; }
+    .va-modal-close { float:right; cursor:pointer; font-size:1.2rem; color:#9ca3af; background:none; border:none; }
+
     .hidden { display:none !important; }
     .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
   </style>
@@ -244,6 +273,9 @@
       </button>
       <button class="mode-btn" id="btnD" onclick="switchMode('dashboard')">
         <span class="mode-icon">📈</span>Dashboard
+      </button>
+      <button class="mode-btn" id="btnVA" onclick="switchMode('vendor_accounts')">
+        <span class="mode-icon">💼</span>Vendor Accounts
       </button>
     </div>
   </div>
@@ -619,6 +651,159 @@
 
     </div><!-- /dashboardSection -->
 
+
+    <!-- ═══════ VENDOR ACCOUNTS SECTION ═══════ -->
+    <div id="vendorAccountsSection" class="hidden">
+
+      <!-- Float Vendors -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hd">
+          <span class="stag" style="background:#fef3c7;color:#92400e;">💰 Float / Advance Vendors</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;">DD keeps advance with these vendors</span>
+        </div>
+        <div class="card-bd">
+          <div id="floatBalancesDisplay">
+            <div style="text-align:center;padding:20px;color:#9ca3af;font-size:.82rem;">Loading float balances…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credit Vendors -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hd">
+          <span class="stag" style="background:#dbeafe;color:#1e40af;">🏦 Credit Vendors — 7 Day Settlement</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;">AirIQ · Travel Paradise · Travel Boutique</span>
+        </div>
+        <div class="card-bd">
+          <div id="creditDataDisplay">
+            <div style="text-align:center;padding:20px;color:#9ca3af;font-size:.82rem;">Loading credit outstanding…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Linkages -->
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-hd">
+          <span class="stag" style="background:#fef3c7;color:#92400e;">⏳ Pending — Tour ID Not Yet Assigned</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;">Float utilisations waiting for Tour ID</span>
+        </div>
+        <div class="card-bd">
+          <div id="pendingEntriesDisplay">
+            <div style="text-align:center;padding:20px;color:#9ca3af;font-size:.82rem;">Loading pending entries…</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /vendorAccountsSection -->
+
+    <!-- ── MODALS ── -->
+
+    <!-- Replenish Modal -->
+    <div class="va-modal" id="modalReplenish">
+      <div class="va-modal-box">
+        <button class="va-modal-close" onclick="closeModal('modalReplenish')">✕</button>
+        <div class="va-modal-title">💰 Add Float — <span id="replenishVendorLabel"></span></div>
+        <div class="fg"><label class="fl">Amount (₹) <span class="req">*</span></label>
+          <input type="number" id="rplAmount" class="fi" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="fg"><label class="fl">Date</label>
+          <input type="date" id="rplDate" class="fi"></div>
+        <div class="fg"><label class="fl">Payment Mode</label>
+          <select id="rplMode" class="fi">
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="upi">UPI</option>
+            <option value="cheque">Cheque</option>
+            <option value="cash">Cash</option>
+          </select></div>
+        <div class="fg"><label class="fl">Bank / Txn Reference</label>
+          <input type="text" id="rplRef" class="fi" placeholder="Txn No / Cheque No"></div>
+        <div class="fg" style="margin-bottom:0;"><label class="fl">Remarks</label>
+          <input type="text" id="rplRemarks" class="fi" placeholder="Optional note"></div>
+        <input type="hidden" id="rplVendor">
+        <button type="button" class="sub-btn r" style="margin-top:16px;background:linear-gradient(135deg,#059669,#10b981);" onclick="submitReplenish()">Confirm Replenishment →</button>
+        <div class="result hidden" id="rplResult" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Utilise Modal -->
+    <div class="va-modal" id="modalUtilise">
+      <div class="va-modal-box">
+        <button class="va-modal-close" onclick="closeModal('modalUtilise')">✕</button>
+        <div class="va-modal-title">✈ Book / Utilise Float — <span id="utiliseVendorLabel"></span></div>
+        <div class="fg"><label class="fl">Service Type <span class="req">*</span></label>
+          <select id="utlService" class="fi">
+            <option value="Air Ticket">Air Ticket</option>
+            <option value="Rail Ticket">Rail Ticket</option>
+            <option value="Hotel">Hotel</option>
+            <option value="Transport">Transport</option>
+            <option value="Visa">Visa</option>
+            <option value="Other">Other</option>
+          </select></div>
+        <div class="fg"><label class="fl">Amount (₹) <span class="req">*</span></label>
+          <input type="number" id="utlAmount" class="fi" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="fg"><label class="fl">Traveller Name</label>
+          <input type="text" id="utlTraveller" class="fi" placeholder="Passenger name"></div>
+        <div class="fg"><label class="fl">Date</label>
+          <input type="date" id="utlDate" class="fi"></div>
+        <div class="fg"><label class="fl">Tour ID
+          <span style="font-size:.7rem;color:#9ca3af;font-weight:400;">— leave blank if not known yet (PENDING)</span></label>
+          <input type="text" id="utlTourId" class="fi" placeholder="e.g. GOA/SHARMA/GRP — or leave blank" list="tourIdDL" style="text-transform:uppercase;" oninput="togglePendingNote()">
+        </div>
+        <div id="utlPendingNote" class="hidden" style="background:#fef3c7;border-radius:8px;padding:8px 12px;font-size:.78rem;color:#92400e;margin-bottom:10px;">
+          ⚠️ No Tour ID entered — this entry will be saved as <strong>PENDING</strong> and must be linked to a Tour ID later from the Vendor Accounts tab.
+        </div>
+        <div class="fg" style="margin-bottom:0;"><label class="fl">Remarks</label>
+          <input type="text" id="utlRemarks" class="fi" placeholder="PNR, booking ref, etc."></div>
+        <input type="hidden" id="utlVendor">
+        <button type="button" class="sub-btn p" style="margin-top:16px;" onclick="submitUtilise()">Save Utilisation →</button>
+        <div class="result hidden" id="utlResult" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Credit Settle Modal -->
+    <div class="va-modal" id="modalSettle">
+      <div class="va-modal-box">
+        <button class="va-modal-close" onclick="closeModal('modalSettle')">✕</button>
+        <div class="va-modal-title">🏦 Record Settlement — <span id="settleVendorLabel"></span></div>
+        <div class="g2">
+          <div class="fg"><label class="fl">Period From <span class="req">*</span></label>
+            <input type="date" id="stlFrom" class="fi"></div>
+          <div class="fg"><label class="fl">Period To <span class="req">*</span></label>
+            <input type="date" id="stlTo" class="fi"></div>
+        </div>
+        <div class="fg"><label class="fl">Amount Paid (₹) <span class="req">*</span></label>
+          <input type="number" id="stlAmount" class="fi" placeholder="0.00" min="0" step="0.01"></div>
+        <div class="fg"><label class="fl">Payment Mode</label>
+          <select id="stlMode" class="fi">
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="upi">UPI</option>
+            <option value="cheque">Cheque</option>
+          </select></div>
+        <div class="fg"><label class="fl">Bank / Txn Reference</label>
+          <input type="text" id="stlRef" class="fi" placeholder="Txn No / UTR"></div>
+        <div class="fg" style="margin-bottom:0;"><label class="fl">Remarks</label>
+          <input type="text" id="stlRemarks" class="fi" placeholder="Optional note"></div>
+        <input type="hidden" id="stlVendor">
+        <button type="button" class="sub-btn r" style="margin-top:16px;background:linear-gradient(135deg,#0369a1,#0ea5e9);" onclick="submitSettle()">Confirm Settlement →</button>
+        <div class="result hidden" id="stlResult" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Link Pending Modal -->
+    <div class="va-modal" id="modalLink">
+      <div class="va-modal-box">
+        <button class="va-modal-close" onclick="closeModal('modalLink')">✕</button>
+        <div class="va-modal-title">🔗 Assign Tour ID to Pending Entry</div>
+        <div style="background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;font-size:.82rem;" id="linkEntryDetails"></div>
+        <div class="fg" style="margin-bottom:0;">
+          <label class="fl">Tour ID <span class="req">*</span></label>
+          <input type="text" id="lnkTourId" class="fi" placeholder="e.g. GOA/SHARMA/GRP" list="tourIdDL" style="text-transform:uppercase;">
+        </div>
+        <input type="hidden" id="lnkRowNumber">
+        <button type="button" class="sub-btn r" style="margin-top:16px;background:linear-gradient(135deg,#5b21b6,#7c3aed);" onclick="submitLink()">Link Tour ID →</button>
+        <div class="result hidden" id="lnkResult" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
     <button type="submit" class="sub-btn r" id="submitBtn">Submit Receipt ₹ →</button>
     <div class="result" id="resultMsg"></div>
 
@@ -661,6 +846,7 @@ function fetchLiveData() {
       if (data.success) {
         liveData    = data.tours   || {};
         liveTourIds = data.tourIds || [];
+        storeVAData(data);
         liveFyData  = data.fyTours || {};
         // Populate FY dropdown
         const fySelect = document.getElementById('fyFilter');
@@ -818,19 +1004,23 @@ function switchMode(mode) {
   const isVend  = mode === 'vendor';
   const isLedge = mode === 'ledger';
   const isDash  = mode === 'dashboard';
+  const isVA    = mode === 'vendor_accounts';
   document.getElementById('travelerSection').classList.toggle('hidden',  !isTrav);
   document.getElementById('vendorSection').classList.toggle('hidden',    !isVend);
   document.getElementById('ledgerSection').classList.toggle('hidden',    !isLedge);
   document.getElementById('dashboardSection').classList.toggle('hidden', !isDash);
-  document.getElementById('submitBtn').classList.toggle('hidden', isLedge || isDash);
+  document.getElementById('vendorAccountsSection').classList.toggle('hidden', !isVA);
+  document.getElementById('submitBtn').classList.toggle('hidden', isLedge || isDash || isVA);
   document.getElementById('btnR').className = 'mode-btn' + (isTrav  ? ' r-active' : '');
   document.getElementById('btnP').className = 'mode-btn' + (isVend  ? ' p-active' : '');
   document.getElementById('btnL').className = 'mode-btn' + (isLedge ? ' l-active' : '');
-  document.getElementById('btnD').className = 'mode-btn' + (isDash  ? ' d-active' : '');
+  document.getElementById('btnD').className  = 'mode-btn' + (isDash  ? ' d-active' : '');
+  document.getElementById('btnVA').className = 'mode-btn' + (isVA   ? ' va-active' : '');
   const btn = document.getElementById('submitBtn');
   btn.className   = 'sub-btn ' + (isTrav ? 'r' : 'p');
   btn.textContent = isTrav ? 'Submit Receipt ₹ →' : 'Submit Vendor Payment ₹ →';
   if (isDash) renderDashboard();
+  if (isVA)   renderVendorAccounts();
   hideResult();
 }
 
@@ -1539,6 +1729,248 @@ function printDash() {
   win.document.close();
   setTimeout(function(){ win.print(); }, 400);
 }
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// VENDOR ACCOUNTS
+// ═══════════════════════════════════════════════════════════════════════
+let vaLiveFloatBalances  = {};
+let vaLivePendingEntries = [];
+let vaLiveCreditData     = {};
+
+function renderVendorAccounts() {
+  if (!liveLoaded) { setTimeout(renderVendorAccounts, 600); return; }
+  renderFloatBalances();
+  renderCreditData();
+  renderPendingEntries();
+}
+
+// ── Store VA data from live sync ──────────────────────────────────────
+function storeVAData(data) {
+  vaLiveFloatBalances  = data.floatBalances  || {};
+  vaLivePendingEntries = data.pendingEntries || [];
+  vaLiveCreditData     = data.creditData     || {};
+}
+
+function fmt2(n) { return '₹' + (n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+// ── Float balances display ────────────────────────────────────────────
+function renderFloatBalances() {
+  const el = document.getElementById('floatBalancesDisplay');
+  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS'];
+  if (!Object.keys(vaLiveFloatBalances).length) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.82rem;">No float data yet. Add first replenishment below.</div>';
+  }
+  el.innerHTML = vendors.map(function(v) {
+    const d   = vaLiveFloatBalances[v] || {replenished:0,utilised:0,balance:0};
+    const bal = d.balance || 0;
+    const cls = bal > 50000 ? 'healthy' : bal > 0 ? 'low' : 'empty';
+    const balColor = bal > 50000 ? '#059669' : bal > 0 ? '#d97706' : '#dc2626';
+    const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '❌';
+    const vLabel = v === 'MY PARTNER' ? 'My Partner (Prepaid Portal)' : 'Arise Tour and Travels';
+    return '<div class="vendor-bal-card ' + cls + '">'
+      + '<div><div class="vbc-name">' + icon + ' ' + vLabel + '</div>'
+      + '<div class="vbc-sub">Deposited: ' + fmt2(d.replenished) + ' &nbsp;|&nbsp; Used: ' + fmt2(d.utilised) + '</div></div>'
+      + '<div style="display:flex;align-items:center;gap:10px;">'
+      + '<div class="vbc-bal" style="color:' + balColor + ';">' + fmt2(bal) + '</div>'
+      + '<div class="vbc-action">'
+      + '<button class="vbc-btn green" onclick="openReplenish('' + v + '')">+ Add Float</button>'
+      + '<button class="vbc-btn amber" onclick="openUtilise('' + v + '')">✈ Book / Use</button>'
+      + '</div></div></div>';
+  }).join('');
+}
+
+// ── Credit data display ───────────────────────────────────────────────
+function renderCreditData() {
+  const el = document.getElementById('creditDataDisplay');
+  const vendors = ['AIR IQ','TRAVEL PARADISE ONLINE','TRAVEL BOUTIQUE ONLINE'];
+  const today = new Date();
+  el.innerHTML = vendors.map(function(v) {
+    const d   = vaLiveCreditData[v] || {utilised:0,settled:0,outstanding:0,oldestUnpaid:null};
+    const out = d.outstanding || 0;
+    let dueDays = null; let cls = 'credit-ok'; let dueLabel = 'No outstanding';
+    if (out > 0 && d.oldestUnpaid) {
+      const oldest = new Date(d.oldestUnpaid);
+      const due    = new Date(oldest.getTime() + 7*24*60*60*1000);
+      dueDays = Math.ceil((due - today) / (24*60*60*1000));
+      cls = dueDays > 2 ? 'credit-due' : 'credit-over';
+      dueLabel = dueDays > 0 ? 'Due in ' + dueDays + ' day' + (dueDays===1?'':'s') : 'OVERDUE by ' + Math.abs(dueDays) + ' day' + (Math.abs(dueDays)===1?'':'s');
+    }
+    const icon = out <= 0 ? '✅' : dueDays !== null && dueDays <= 0 ? '🔴' : '🟡';
+    return '<div class="vendor-bal-card ' + cls + '">'
+      + '<div><div class="vbc-name">' + icon + ' ' + v + '</div>'
+      + '<div class="vbc-sub">Total used: ' + fmt2(d.utilised) + ' &nbsp;|&nbsp; Settled: ' + fmt2(d.settled) + '</div>'
+      + (out > 0 ? '<div class="vbc-sub" style="color:#dc2626;font-weight:700;margin-top:4px;">' + dueLabel + '</div>' : '<div class="vbc-sub" style="color:#059669;margin-top:4px;">' + dueLabel + '</div>')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:10px;">'
+      + '<div class="vbc-bal" style="color:' + (out>0?'#dc2626':'#059669') + ';">' + fmt2(out) + '</div>'
+      + (out > 0 ? '<button class="vbc-btn blue" onclick="openSettle('' + v + '')">Settle ₹</button>' : '')
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Pending entries display ───────────────────────────────────────────
+function renderPendingEntries() {
+  const el = document.getElementById('pendingEntriesDisplay');
+  if (!vaLivePendingEntries.length) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:#059669;font-size:.82rem;">✅ No pending entries — all utilisations are linked to Tour IDs.</div>';
+    return;
+  }
+  el.innerHTML = vaLivePendingEntries.map(function(p) {
+    return '<div class="pending-row">'
+      + '<div class="pending-row-hd">'
+      + '<span class="pending-badge">⏳ PENDING — ' + p.vendor + '</span>'
+      + '<span style="font-size:.75rem;color:#6b7280;">' + (p.date||p.timestamp||'') + '</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">'
+      + '<div style="font-size:.82rem;">'
+      + '<strong>' + (p.serviceType||'Service') + '</strong>'
+      + (p.traveller ? ' — ' + p.traveller : '')
+      + ' &nbsp;|&nbsp; <span style="color:#dc2626;font-weight:700;">' + fmt2(p.amount) + '</span>'
+      + (p.remarks ? '<br><span style="color:#9ca3af;font-size:.75rem;">' + p.remarks + '</span>' : '')
+      + '</div>'
+      + '<button class="vbc-btn blue" onclick="openLink(' + p.rowNumber + ','' + (p.serviceType||'') + '',' + p.amount + ','' + (p.traveller||'') + '','' + p.vendor + '')">🔗 Assign Tour ID</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Modal openers ─────────────────────────────────────────────────────
+function openReplenish(vendor) {
+  document.getElementById('rplVendor').value = vendor;
+  document.getElementById('replenishVendorLabel').textContent = vendor;
+  document.getElementById('rplDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('rplAmount').value = '';
+  document.getElementById('rplRef').value = '';
+  document.getElementById('rplRemarks').value = '';
+  document.getElementById('rplResult').className = 'result hidden';
+  document.getElementById('modalReplenish').classList.add('open');
+}
+function openUtilise(vendor) {
+  document.getElementById('utlVendor').value = vendor;
+  document.getElementById('utiliseVendorLabel').textContent = vendor;
+  document.getElementById('utlDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('utlAmount').value = '';
+  document.getElementById('utlTraveller').value = '';
+  document.getElementById('utlTourId').value = '';
+  document.getElementById('utlRemarks').value = '';
+  document.getElementById('utlPendingNote').classList.add('hidden');
+  document.getElementById('utlResult').className = 'result hidden';
+  document.getElementById('modalUtilise').classList.add('open');
+}
+function openSettle(vendor) {
+  document.getElementById('stlVendor').value = vendor;
+  document.getElementById('settleVendorLabel').textContent = vendor;
+  const today = new Date().toISOString().split('T')[0];
+  const week  = new Date(Date.now()-7*24*60*60*1000).toISOString().split('T')[0];
+  document.getElementById('stlFrom').value = week;
+  document.getElementById('stlTo').value   = today;
+  document.getElementById('stlAmount').value = '';
+  document.getElementById('stlRef').value = '';
+  document.getElementById('stlRemarks').value = '';
+  document.getElementById('stlResult').className = 'result hidden';
+  document.getElementById('modalSettle').classList.add('open');
+}
+function openLink(rowNum, svcType, amount, traveller, vendor) {
+  document.getElementById('lnkRowNumber').value = rowNum;
+  document.getElementById('lnkTourId').value = '';
+  document.getElementById('lnkResult').className = 'result hidden';
+  document.getElementById('linkEntryDetails').innerHTML =
+    '<strong>' + vendor + '</strong> — ' + svcType +
+    (traveller ? ' — ' + traveller : '') +
+    ' — <strong style="color:#dc2626;">' + fmt2(amount) + '</strong>';
+  document.getElementById('modalLink').classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function togglePendingNote() {
+  const val = document.getElementById('utlTourId').value.trim();
+  document.getElementById('utlPendingNote').classList.toggle('hidden', !!val);
+}
+
+// ── Submit helpers ────────────────────────────────────────────────────
+function vaSubmit(payload, resultId, successMsg, onSuccess) {
+  const resultEl = document.getElementById(resultId);
+  resultEl.textContent = 'Saving…';
+  resultEl.className = 'result show warning';
+  const form = document.createElement('form');
+  form.action = BACKEND; form.method = 'POST'; form.target = 'hiddenIframe'; form.style.display = 'none';
+  const inp = document.createElement('input');
+  inp.type='hidden'; inp.name='jsonPayload'; inp.value=JSON.stringify(payload);
+  form.appendChild(inp); document.body.appendChild(form); form.submit();
+  const iframe = document.getElementById('hiddenIframe');
+  const timeout = setTimeout(function() {
+    resultEl.textContent = '⚠️ Timed out — please verify in Sheet.';
+    resultEl.className = 'result show warning';
+    document.body.removeChild(form);
+  }, 10000);
+  iframe.onload = function() {
+    clearTimeout(timeout);
+    resultEl.textContent = successMsg;
+    resultEl.className = 'result show success';
+    document.body.removeChild(form);
+    if (onSuccess) onSuccess();
+    setTimeout(fetchLiveData, 2000);
+  };
+}
+
+function submitReplenish() {
+  const amount = parseFloat(document.getElementById('rplAmount').value);
+  if (!amount) { alert('Amount is required.'); return; }
+  vaSubmit({
+    type:'floatReplenish', vendorName:document.getElementById('rplVendor').value,
+    amount, entryDate:document.getElementById('rplDate').value,
+    paymentMode:document.getElementById('rplMode').value,
+    bankReference:document.getElementById('rplRef').value,
+    remarks:document.getElementById('rplRemarks').value
+  }, 'rplResult', '✅ Float replenishment recorded!',
+  function() { setTimeout(function(){ closeModal('modalReplenish'); renderVendorAccounts(); },1500); });
+}
+
+function submitUtilise() {
+  const amount = parseFloat(document.getElementById('utlAmount').value);
+  if (!amount) { alert('Amount is required.'); return; }
+  vaSubmit({
+    type:'floatUtilise', vendorName:document.getElementById('utlVendor').value,
+    amount, serviceType:document.getElementById('utlService').value,
+    travellerName:document.getElementById('utlTraveller').value,
+    entryDate:document.getElementById('utlDate').value,
+    tourId:document.getElementById('utlTourId').value.trim().toUpperCase(),
+    remarks:document.getElementById('utlRemarks').value
+  }, 'utlResult', '✅ Utilisation recorded!',
+  function() { setTimeout(function(){ closeModal('modalUtilise'); renderVendorAccounts(); },1500); });
+}
+
+function submitSettle() {
+  const amount = parseFloat(document.getElementById('stlAmount').value);
+  const from   = document.getElementById('stlFrom').value;
+  const to     = document.getElementById('stlTo').value;
+  if (!amount || !from || !to) { alert('Period and Amount are required.'); return; }
+  vaSubmit({
+    type:'creditSettle', vendorName:document.getElementById('stlVendor').value,
+    amount, periodFrom:from, periodTo:to,
+    paymentMode:document.getElementById('stlMode').value,
+    bankReference:document.getElementById('stlRef').value,
+    remarks:document.getElementById('stlRemarks').value
+  }, 'stlResult', '✅ Settlement recorded!',
+  function() { setTimeout(function(){ closeModal('modalSettle'); renderVendorAccounts(); },1500); });
+}
+
+function submitLink() {
+  const tourId = document.getElementById('lnkTourId').value.trim().toUpperCase();
+  const rowNum = document.getElementById('lnkRowNumber').value;
+  if (!tourId) { alert('Please enter a Tour ID.'); return; }
+  vaSubmit({
+    type:'linkPending', rowNumber:rowNum, tourId
+  }, 'lnkResult', '✅ Tour ID linked successfully!',
+  function() { setTimeout(function(){ closeModal('modalLink'); renderVendorAccounts(); },1500); });
+}
+
+// Close modals on backdrop click
+document.addEventListener('click', function(e) {
+  ['modalReplenish','modalUtilise','modalSettle','modalLink'].forEach(function(id) {
+    const modal = document.getElementById(id);
+    if (e.target === modal) modal.classList.remove('open');
+  });
+});
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
