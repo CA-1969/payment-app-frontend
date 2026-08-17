@@ -1757,7 +1757,7 @@ function fmt2(n) { return '₹' + (n||0).toLocaleString('en-IN',{minimumFraction
 // ── Float balances display ────────────────────────────────────────────
 function renderFloatBalances() {
   const el = document.getElementById('floatBalancesDisplay');
-  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS','AIR IQ'];
+  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS'];
   if (!Object.keys(vaLiveFloatBalances).length) {
     el.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.82rem;">No float data yet. Add first replenishment below.</div>';
   }
@@ -1767,7 +1767,8 @@ function renderFloatBalances() {
     const cls = bal > 50000 ? 'healthy' : bal > 0 ? 'low' : 'empty';
     const balColor = bal > 50000 ? '#059669' : bal > 0 ? '#d97706' : '#dc2626';
     const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '❌';
-    const vLabel = v === 'MY PARTNER' ? 'My Partner (Prepaid Portal)' : 'Arise Tour and Travels';
+    const labelMap = {'MY PARTNER':'My Partner (Prepaid Portal)','ARISE TOUR AND TRAVELS':'Arise Tour and Travels','AIR IQ':'Air IQ (Float Account)'};
+  const vLabel = labelMap[v] || v;
     return '<div class="vendor-bal-card ' + cls + '">'
       + '<div><div class="vbc-name">' + icon + ' ' + vLabel + '</div>'
       + '<div class="vbc-sub">Deposited: ' + fmt2(d.replenished) + ' &nbsp;|&nbsp; Used: ' + fmt2(d.utilised) + '</div></div>'
