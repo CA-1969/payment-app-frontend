@@ -1766,7 +1766,7 @@ function renderFloatBalances() {
     const bal = d.balance || 0;
     const cls = bal > 50000 ? 'healthy' : bal > 0 ? 'low' : 'empty';
     const balColor = bal > 50000 ? '#059669' : bal > 0 ? '#d97706' : '#dc2626';
-    const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '❌';
+    const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '💰';
     const labelMap = {'MY PARTNER':'My Partner (Prepaid Portal)','ARISE TOUR AND TRAVELS':'Arise Tour and Travels','AIR IQ':'Air IQ (Float Account)'};
   const vLabel = labelMap[v] || v;
     return '<div class="vendor-bal-card ' + cls + '">'
