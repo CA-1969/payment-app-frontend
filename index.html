@@ -863,8 +863,8 @@
         <div class="fg"><label class="fl">Date</label>
           <input type="date" id="utlDate" class="fi"></div>
         <div class="fg"><label class="fl">Tour ID
-          <span style="font-size:.7rem;color:#9ca3af;font-weight:400;">— leave blank if not known yet (PENDING)</span></label>
-          <input type="text" id="utlTourId" class="fi" placeholder="e.g. GOA/SHARMA/GRP — or leave blank" list="tourIdDL" style="text-transform:uppercase;" oninput="togglePendingNote()">
+          <span style="font-size:.7rem;color:#9ca3af;font-weight:400;">— select PENDING if Tour ID not known yet</span></label>
+          <select id="utlTourId" class="fi" style="cursor:pointer;" onchange="togglePendingNote()"><option value="">— PENDING (no Tour ID yet) —</option></select>
         </div>
         <div id="utlPendingNote" class="hidden" style="background:#fef3c7;border-radius:8px;padding:8px 12px;font-size:.78rem;color:#92400e;margin-bottom:10px;">
           ⚠️ No Tour ID entered — this entry will be saved as <strong>PENDING</strong> and must be linked to a Tour ID later from the Vendor Accounts tab.
@@ -1023,6 +1023,15 @@ function populateDatalistsAndChips() {
   const ids = liveTourIds.length ? liveTourIds : getTourHist();
 
   // datalists
+  // Also populate float Tour ID dropdown
+  const utlSel = document.getElementById('utlTourId');
+  if (utlSel) {
+    const curVal = utlSel.value;
+    utlSel.innerHTML = '<option value="">— PENDING (no Tour ID yet) —</option>' +
+      ids.map(id => '<option value="' + id + '">' + id + '</option>').join('');
+    if (curVal) utlSel.value = curVal;
+  }
+
   ['tourIdDL','vendorTourIdDL','ledgerTourIdDL'].forEach(dlId => {
     const dl = document.getElementById(dlId);
     if (dl) dl.innerHTML = ids.map(id => `<option value="${id}">`).join('');
