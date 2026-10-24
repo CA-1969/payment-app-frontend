@@ -281,7 +281,7 @@
         <span class="sync-dot pulse" id="syncDot"></span>
         <span id="syncText">Loading sheet data…</span>
       </span>
-      <span class="hbadge">v18.0</span>
+      <span class="hbadge">v19.0</span>
       <span class="hbadge" style="font-size:.62rem;">M/s Anurag Maheshwari &amp; Co.</span>
     </div>
   </div>
@@ -669,18 +669,42 @@
           <div style="font-size:.78rem;color:#6b7280;margin-bottom:10px;line-height:1.5;">
             Fetches a live consolidated view — all traveller receipts, direct vendor payments, <em>and</em> float utilisations — for any Tour ID. Useful for reconciliation before or after closing.
           </div>
-          <div class="fg" style="margin-bottom:10px;">
-            <label class="fl">Tour ID <span class="req">*</span></label>
-            <div style="display:flex;gap:8px;align-items:stretch;">
-              <input type="text" id="stmtTourId" class="fi" style="border-color:#93c5fd;flex:1;margin-bottom:0;"
-                     placeholder="Select or type Tour ID…" autocomplete="off" list="ledgerTourIdDL"
+
+          <!-- Filter row: FY → Tour ID → Fetch -->
+          <div style="display:grid;grid-template-columns:130px 1fr auto;gap:8px;align-items:end;margin-bottom:10px;">
+            <!-- Financial Year filter -->
+            <div>
+              <label class="fl" style="font-size:.72rem;margin-bottom:4px;display:block;">Financial Year</label>
+              <select id="stmtFyFilter" class="fi" style="border-color:#93c5fd;margin-bottom:0;padding:8px 10px;cursor:pointer;"
+                      onchange="populateStmtTourIds()">
+                <option value="all">All Years</option>
+              </select>
+            </div>
+            <!-- Tour ID selector -->
+            <div>
+              <label class="fl" style="font-size:.72rem;margin-bottom:4px;display:block;">Tour ID <span class="req">*</span></label>
+              <input type="text" id="stmtTourId" class="fi" style="border-color:#93c5fd;margin-bottom:0;"
+                     placeholder="Select or type Tour ID…" autocomplete="off" list="stmtTourIdDL"
                      oninput="this.value=this.value.toUpperCase()" onkeyup="if(event.key==='Enter')fetchTourStatement()">
+              <datalist id="stmtTourIdDL"></datalist>
+            </div>
+            <!-- Fetch button -->
+            <div>
               <button type="button" onclick="fetchTourStatement()"
-                      style="padding:0 18px;background:#1d4ed8;color:#fff;border:none;border-radius:10px;font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap;">
+                      style="padding:8px 18px;background:#1d4ed8;color:#fff;border:none;border-radius:10px;font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap;height:40px;">
                 Fetch →
               </button>
             </div>
           </div>
+
+          <!-- Refresh Sheet button -->
+          <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+            <button type="button" onclick="refreshTourSheet()" id="refreshSheetBtn"
+                    style="font-size:.73rem;color:#7c3aed;background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:5px 12px;cursor:pointer;font-weight:600;">
+              🗂 Refresh Google Sheet Summary
+            </button>
+          </div>
+
           <!-- Statement output area -->
           <div id="stmtResult" style="display:none;margin-top:4px;"></div>
         </div>
@@ -911,7 +935,7 @@
 // ═══════════════════════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════════════════════
-const BACKEND       = 'https://script.google.com/macros/s/AKfycbw4yp3RBs2jphKVSODd9FnzS9PF_pou4XjEfvlmhbDMbpFwHkkN0FZBIkNpEB7Z-1ppJw/exec';
+const BACKEND       = 'https://script.google.com/macros/s/AKfycbzUrK6imSucnNnr9iBJzwSPIOgXR1n38ft_QmyQepWhuX50salOU9OBCuyY_e2W6a53KQ/exec';
 const RECEIPT_KEY   = 'paymentAppReceiptCounter';
 const TOUR_HIST_KEY = 'dreamDest_tourIdHistory';
 const MAX_MEMBERS   = 20;
@@ -953,6 +977,7 @@ function fetchLiveData() {
         liveLoaded  = true;
         setSyncState('ok', `Sheet synced · ${liveTourIds.length} tours`);
         populateDatalistsAndChips();
+        populateStmtFilters();
       } else {
         throw new Error(data.error || 'Unknown error');
       }
@@ -1673,6 +1698,32 @@ function resetLedgerForm() {
 // ═══════════════════════════════════════════════════════════════
 // TOUR ACCOUNT STATEMENT
 // ═══════════════════════════════════════════════════════════════
+// Populate Tour ID datalist filtered by selected FY
+function populateStmtTourIds() {
+  const fy  = (document.getElementById('stmtFyFilter') || {}).value || 'all';
+  const src = (fy !== 'all' && liveFyData[fy]) ? liveFyData[fy] : liveData;
+  const dl  = document.getElementById('stmtTourIdDL');
+  if (!dl) return;
+  dl.innerHTML = Object.keys(src).sort().map(id => '<option value="' + id + '">').join('');
+  // Clear Tour ID input when FY changes
+  document.getElementById('stmtTourId').value = '';
+  document.getElementById('stmtResult').style.display = 'none';
+}
+
+// Called once after fetchLiveData succeeds
+function populateStmtFilters() {
+  // Populate FY dropdown
+  const fySelect = document.getElementById('stmtFyFilter');
+  if (fySelect && Object.keys(liveFyData).length) {
+    const cur = fySelect.value;
+    fySelect.innerHTML = '<option value="all">All Years</option>' +
+      Object.keys(liveFyData).sort().reverse().map(fy => '<option value="' + fy + '">' + fy + '</option>').join('');
+    if (cur && cur !== 'all') fySelect.value = cur;
+  }
+  // Populate Tour ID datalist (all years by default)
+  populateStmtTourIds();
+}
+
 async function fetchTourStatement() {
   const tourId = document.getElementById('stmtTourId').value.trim().toUpperCase();
   if (!tourId) { alert('Please enter or select a Tour ID.'); return; }
@@ -1686,9 +1737,35 @@ async function fetchTourStatement() {
     const resp = await fetch(url, { redirect: 'follow' });
     const data = await resp.json();
     if (!data.success) throw new Error(data.error || 'Server error');
+    // Guard: if Apps Script not yet redeployed, d.totals will be undefined
+    if (!data.totals) {
+      throw new Error('Apps Script not yet updated with tourstatement action — please redeploy Code.gs with a new version, then try again.');
+    }
     resultDiv.innerHTML = buildStmtHTML(data);
   } catch (err) {
     resultDiv.innerHTML = '<div style="color:#dc2626;padding:12px;background:#fee2e2;border-radius:8px;font-size:.82rem;">⚠️ ' + err.message + '</div>';
+  }
+}
+
+async function refreshTourSheet() {
+  const btn = document.getElementById('refreshSheetBtn');
+  const orig = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Refreshing…';
+  try {
+    const url  = BACKEND + '?action=refreshtoursheet';
+    const resp = await fetch(url, { redirect: 'follow' });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+    btn.innerHTML = '✅ Sheet Updated (' + (data.rowsWritten || 0) + ' tours)';
+    btn.style.color = '#059669';
+    btn.style.borderColor = '#6ee7b7';
+    btn.style.background = '#ecfdf5';
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; btn.style.cssText = ''; btn.setAttribute('style','font-size:.73rem;color:#7c3aed;background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:5px 12px;cursor:pointer;font-weight:600;'); }, 4000);
+  } catch (err) {
+    btn.innerHTML = '⚠️ ' + err.message;
+    btn.style.color = '#dc2626';
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; btn.style.cssText = ''; btn.setAttribute('style','font-size:.73rem;color:#7c3aed;background:#f5f3ff;border:1px solid #c4b5fd;border-radius:8px;padding:5px 12px;cursor:pointer;font-weight:600;'); }, 5000);
   }
 }
 
@@ -1696,6 +1773,10 @@ async function fetchTourStatement() {
 function onLedgerChipClick(id) {
   document.getElementById('ledgerTourId').value = id;
   document.getElementById('stmtTourId').value   = id;
+  // Reset FY filter to All Years so the typed ID is always honoured
+  const fyEl = document.getElementById('stmtFyFilter');
+  if (fyEl) fyEl.value = 'all';
+  document.getElementById('stmtResult').style.display = 'none';
   onLedgerTourId();
 }
 
