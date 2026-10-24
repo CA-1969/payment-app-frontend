@@ -234,9 +234,40 @@
 
     .hidden { display:none !important; }
     .app-footer { text-align:center; padding:20px; font-size:.7rem; color:#9ca3af; }
+  /* ── PIN overlay ── */
+  .pin-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:9999; align-items:center; justify-content:center; }
+  .pin-overlay.open { display:flex; }
+  .pin-box { background:#fff; border-radius:20px; padding:32px 28px; max-width:360px; width:90%; box-shadow:0 24px 64px rgba(0,0,0,.35); text-align:center; }
+  .pin-logo { font-size:2rem; margin-bottom:6px; }
+  .pin-title { font-size:1.1rem; font-weight:800; color:#0c4a6e; margin-bottom:4px; }
+  .pin-sub   { font-size:.78rem; color:#6b7280; margin-bottom:20px; }
+  .pin-input { width:100%; text-align:center; font-size:1.8rem; font-weight:700; letter-spacing:.4rem; height:56px; border:2px solid #d1d5db; border-radius:12px; outline:none; color:#0c4a6e; margin-bottom:12px; }
+  .pin-input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(3,105,161,.12); }
+  .pin-btn { width:100%; padding:13px; border:none; border-radius:12px; cursor:pointer; font-size:1rem; font-weight:700; background:linear-gradient(135deg,#0c4a6e,#0369a1); color:#fff; margin-bottom:8px; }
+  .pin-err { font-size:.78rem; color:#dc2626; height:18px; margin-bottom:4px; }
+  /* ── Header float badge strip ── */
+  .float-strip { background:rgba(255,255,255,.1); border-top:1px solid rgba(255,255,255,.12); }
+  .float-strip-inner { max-width:880px; margin:0 auto; padding:5px 20px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .float-badge { display:inline-flex; align-items:center; gap:4px; font-size:.66rem; font-weight:700; padding:2px 9px; border-radius:20px; white-space:nowrap; }
+  .fb-green  { background:rgba(16,185,129,.25); color:#6ee7b7; }
+  .fb-amber  { background:rgba(217,119,6,.25);  color:#fcd34d; }
+  .fb-red    { background:rgba(220,38,38,.25);   color:#fca5a5; }
+  .fb-label  { color:rgba(255,255,255,.55); font-size:.62rem; font-weight:500; }
   </style>
 </head>
 <body>
+<!-- PIN GATE -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-box">
+    <div class="pin-logo">✈</div>
+    <div class="pin-title">Dream Destination</div>
+    <div class="pin-sub">Payment Tracker — Staff Access Only<br>Enter your 4-digit staff PIN to continue</div>
+    <input type="password" inputmode="numeric" maxlength="4" class="pin-input" id="pinInput" placeholder="●●●●" onkeyup="checkPin(event)">
+    <div class="pin-err" id="pinErr"></div>
+    <button class="pin-btn" onclick="verifyPin()">Unlock →</button>
+    <div style="font-size:.68rem;color:#9ca3af;margin-top:6px;">M/s Anurag Maheshwari &amp; Co. · Saharanpur</div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <header class="app-header">
@@ -250,11 +281,20 @@
         <span class="sync-dot pulse" id="syncDot"></span>
         <span id="syncText">Loading sheet data…</span>
       </span>
-      <span class="hbadge">v16.0</span>
+      <span class="hbadge">v18.0</span>
       <span class="hbadge" style="font-size:.62rem;">M/s Anurag Maheshwari &amp; Co.</span>
     </div>
   </div>
 </header>
+<!-- FLOAT BALANCE STRIP (hidden until data loads) -->
+<div class="float-strip" id="floatStrip" style="display:none;">
+  <div class="float-strip-inner">
+    <span class="fb-label">Live balances →</span>
+    <span class="float-badge fb-green" id="fbMyPartner">My Partner: —</span>
+    <span class="float-badge fb-green" id="fbArise">Arise Travels: —</span>
+    <span class="float-badge fb-amber" id="fbAirIQ">Air IQ Due: —</span>
+  </div>
+</div>
 
 <!-- MAIN -->
 <main style="max-width:880px;margin:0 auto;padding:22px 14px 40px;">
@@ -269,7 +309,7 @@
         <span class="mode-icon">🏪</span>Payment — Vendor / Supplier
       </button>
       <button class="mode-btn" id="btnL" onclick="switchMode('ledger')">
-        <span class="mode-icon">📊</span>Tour Ledger PDF
+        <span class="mode-icon">📊</span>Tour Ledger
       </button>
       <button class="mode-btn" id="btnD" onclick="switchMode('dashboard')">
         <span class="mode-icon">📈</span>Dashboard
@@ -365,11 +405,18 @@
           </div>
 
           <div id="bankRow" class="g2 hidden" style="margin-top:6px;">
-            <div class="fg" style="margin-bottom:0;"><label class="fl">Bank Name</label>
-              <input type="text" id="bankName" class="fi rf" placeholder="e.g. HDFC, SBI, YES BANK">
+            <div class="fg" style="margin-bottom:0;"><label class="fl">Bank / Account Used</label>
+              <select id="bankName" class="fi rf">
+                <option value="">Select account…</option>
+                <option value="HDFC Current A/c">HDFC Current A/c</option>
+                <option value="Yes Bank Current A/c">Yes Bank Current A/c</option>
+                <option value="Nitin Credit Card">Nitin Credit Card</option>
+                <option value="UPI / QR">UPI / QR</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
-            <div class="fg" style="margin-bottom:0;"><label class="fl">Txn / Cheque / UPI Ref</label>
-              <input type="text" id="paymentType" class="fi rf" placeholder="Reference number">
+            <div class="fg" style="margin-bottom:0;"><label class="fl">Txn / Cheque / UTR Ref</label>
+              <input type="text" id="paymentType" class="fi rf" placeholder="Reference / UTR number">
             </div>
           </div>
 
@@ -501,12 +548,32 @@
             <div id="vChips" class="chips" style="margin-top:10px;"></div>
           </div>
 
-          <div class="fg" style="margin-bottom:0;">
-            <label class="fl">Remarks</label>
-            <input type="text" id="vendorOtherDetails" class="fi pf" placeholder="Any additional note…">
+          <div class="g2" style="margin-bottom:0;">
+            <div class="fg" style="margin-bottom:0;">
+              <label class="fl">Referred By / Sub-Agent</label>
+              <input type="text" id="vendorSubAgent" class="fi pf" placeholder="e.g. Rajiv Manocha, Self">
+            </div>
+            <div class="fg" style="margin-bottom:0;">
+              <label class="fl">UTR / Txn Reference</label>
+              <input type="text" id="vendorUtrRef" class="fi pf" placeholder="UTR / Bank Txn No. for reconciliation">
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Vendor names datalist (common suppliers) -->
+      <datalist id="vendorNameDL">
+        <option value="AIR IQ">
+        <option value="ARISE TOUR AND TRAVELS">
+        <option value="MY PARTNER">
+        <option value="TRAVEL PARADISE ONLINE">
+        <option value="TRAVEL BOUTIQUE ONLINE">
+        <option value="IRCTC">
+        <option value="MAKE MY TRIP">
+        <option value="EASE MY TRIP">
+        <option value="GO IBIBO">
+        <option value="CLEARTRIP">
+      </datalist>
 
       <div class="card">
         <div class="card-hd">
@@ -589,6 +656,33 @@
             </div>
           </div>
 
+        </div>
+      </div>
+
+      <!-- Tour Account Statement card -->
+      <div class="card" style="border-color:#bfdbfe;">
+        <div class="card-hd">
+          <span class="stag" style="background:#dbeafe;color:#1e40af;">📋 Tour Account Statement</span>
+          <span style="margin-left:auto;font-size:.72rem;color:#6b7280;font-weight:500;">Receipts · Vendor Payments · Float Utilisations</span>
+        </div>
+        <div class="card-bd">
+          <div style="font-size:.78rem;color:#6b7280;margin-bottom:10px;line-height:1.5;">
+            Fetches a live consolidated view — all traveller receipts, direct vendor payments, <em>and</em> float utilisations — for any Tour ID. Useful for reconciliation before or after closing.
+          </div>
+          <div class="fg" style="margin-bottom:10px;">
+            <label class="fl">Tour ID <span class="req">*</span></label>
+            <div style="display:flex;gap:8px;align-items:stretch;">
+              <input type="text" id="stmtTourId" class="fi" style="border-color:#93c5fd;flex:1;margin-bottom:0;"
+                     placeholder="Select or type Tour ID…" autocomplete="off" list="ledgerTourIdDL"
+                     oninput="this.value=this.value.toUpperCase()" onkeyup="if(event.key==='Enter')fetchTourStatement()">
+              <button type="button" onclick="fetchTourStatement()"
+                      style="padding:0 18px;background:#1d4ed8;color:#fff;border:none;border-radius:10px;font-weight:600;font-size:.85rem;cursor:pointer;white-space:nowrap;">
+                Fetch →
+              </button>
+            </div>
+          </div>
+          <!-- Statement output area -->
+          <div id="stmtResult" style="display:none;margin-top:4px;"></div>
         </div>
       </div>
 
@@ -917,6 +1011,7 @@ function populateDatalistsAndChips() {
   // vendor chips — recent 8
   renderChips('lChips', ids.slice(0,8), id => {
     document.getElementById('ledgerTourId').value = id;
+    document.getElementById('stmtTourId').value   = id;
     onLedgerTourId();
   });
   renderChips('vChips', ids.slice(0,8), id => {
@@ -1069,8 +1164,15 @@ function addMember() {
       <div class="fg" style="margin-bottom:0;"><label class="fl">Date</label>
         <input type="date" id="gD${idx}" name="groupDate${idx}" class="fi rf" value="${today}">
       </div>
-      <div class="fg" style="margin-bottom:0;"><label class="fl">Bank / Mode</label>
-        <input type="text" id="gB${idx}" name="groupBank${idx}" class="fi rf" placeholder="Cash / UPI / HDFC…">
+      <div class="fg" style="margin-bottom:0;"><label class="fl">Bank / Account</label>
+        <select id="gB${idx}" name="groupBank${idx}" class="fi rf">
+          <option value="Cash">Cash</option>
+          <option value="HDFC Current A/c">HDFC Current A/c</option>
+          <option value="Yes Bank Current A/c">Yes Bank Current A/c</option>
+          <option value="Nitin Credit Card">Nitin Credit Card</option>
+          <option value="UPI / QR">UPI / QR</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
     </div>`;
   document.getElementById('groupMembersContainer').appendChild(div);
@@ -1110,7 +1212,7 @@ function addService() {
         <select id="sT${idx}" name="serviceType${idx}" class="fi pf"><option value="">Select…</option>${stOpts}</select>
       </div>
       <div class="fg" style="margin-bottom:0;"><label class="fl">Vendor Name <span class="req">*</span></label>
-        <input type="text" id="sV${idx}" name="vendorName${idx}" class="fi pf" placeholder="Vendor / supplier">
+        <input type="text" id="sV${idx}" name="vendorName${idx}" class="fi pf" placeholder="Vendor / supplier" list="vendorNameDL" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
       </div>
       <div class="fg" style="margin-bottom:0;"><label class="fl">Date</label>
         <input type="date" id="sD${idx}" name="serviceDate${idx}" class="fi pf" value="${today}">
@@ -1251,7 +1353,9 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
     // ── END RECONCILIATION GUARD ────────────────────────────────────
 
     payload.tourId       = tidUpper;
-    payload.otherDetails = document.getElementById('vendorOtherDetails').value;
+    payload.subAgent     = document.getElementById('vendorSubAgent').value.trim();
+    payload.utrRef       = document.getElementById('vendorUtrRef').value.trim();
+    payload.otherDetails = [payload.subAgent, payload.utrRef].filter(Boolean).join(' | ');
     payload.services     = [];
     let totalAmt = 0; let valid = true;
 
@@ -1342,7 +1446,8 @@ document.getElementById('mainForm').addEventListener('submit', function(e) {
         if(vpv){ vpv.textContent='Fill all three fields above'; vpv.style.color='#9ca3af'; }
         var vpp = document.getElementById('vendorTourIdPreview');
         if(vpp){ vpp.style.borderColor='#fca5a5'; vpp.style.background='#fff5f5'; vpp.classList.add('empty'); }
-        document.getElementById('vendorOtherDetails').value = '';
+        document.getElementById('vendorSubAgent').value = '';
+        document.getElementById('vendorUtrRef').value = '';
         document.getElementById('reconWarn').classList.remove('show');
         document.getElementById('reconOk').classList.remove('show');
         document.getElementById('balCard').className = 'balance-card';
@@ -1566,6 +1671,174 @@ function resetLedgerForm() {
 
 
 // ═══════════════════════════════════════════════════════════════
+// TOUR ACCOUNT STATEMENT
+// ═══════════════════════════════════════════════════════════════
+async function fetchTourStatement() {
+  const tourId = document.getElementById('stmtTourId').value.trim().toUpperCase();
+  if (!tourId) { alert('Please enter or select a Tour ID.'); return; }
+
+  const resultDiv = document.getElementById('stmtResult');
+  resultDiv.style.display = 'block';
+  resultDiv.innerHTML = '<div style="text-align:center;padding:24px;color:#6b7280;font-size:.85rem;">⏳ Fetching statement for <strong>' + tourId + '</strong>…</div>';
+
+  try {
+    const url  = BACKEND + '?action=tourstatement&tourId=' + encodeURIComponent(tourId);
+    const resp = await fetch(url, { redirect: 'follow' });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error || 'Server error');
+    resultDiv.innerHTML = buildStmtHTML(data);
+  } catch (err) {
+    resultDiv.innerHTML = '<div style="color:#dc2626;padding:12px;background:#fee2e2;border-radius:8px;font-size:.82rem;">⚠️ ' + err.message + '</div>';
+  }
+}
+
+// Also sync stmtTourId when a ledger chip is clicked
+function onLedgerChipClick(id) {
+  document.getElementById('ledgerTourId').value = id;
+  document.getElementById('stmtTourId').value   = id;
+  onLedgerTourId();
+}
+
+function buildStmtHTML(d) {
+  const fmtI = n => (n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const fmt  = n => '₹' + fmtI(n);
+  const t    = d.totals;
+  const bal  = t.balance >= 0;
+
+  // ── Summary bar ───────────────────────────────────────────────
+  let html = `
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+    <div style="background:#d1fae5;border-radius:10px;padding:10px 12px;text-align:center;">
+      <div style="font-size:.65rem;color:#065f46;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">💰 Total Receipts</div>
+      <div style="font-size:1rem;font-weight:800;color:#059669;">${fmt(t.receipts)}</div>
+    </div>
+    <div style="background:#fee2e2;border-radius:10px;padding:10px 12px;text-align:center;">
+      <div style="font-size:.65rem;color:#991b1b;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">🏪 Total Cost</div>
+      <div style="font-size:1rem;font-weight:800;color:#dc2626;">${fmt(t.totalCost)}</div>
+      ${t.directPayments > 0 && t.floatUtilisations > 0
+        ? `<div style="font-size:.63rem;color:#9ca3af;margin-top:2px;">Direct ${fmt(t.directPayments)} + Float ${fmt(t.floatUtilisations)}</div>`
+        : ''}
+    </div>
+    <div style="background:${bal ? '#d1fae5' : '#fee2e2'};border-radius:10px;padding:10px 12px;text-align:center;">
+      <div style="font-size:.65rem;color:${bal ? '#065f46' : '#991b1b'};font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;">${bal ? '✅ Profit' : '⚠️ Loss'}</div>
+      <div style="font-size:1rem;font-weight:800;color:${bal ? '#059669' : '#dc2626'};">${fmt(Math.abs(t.balance))}</div>
+    </div>
+  </div>`;
+
+  // ── Section helper ────────────────────────────────────────────
+  function section(icon, label, color, bgLight, rows) {
+    let s = `<div style="margin-bottom:14px;">
+      <div style="font-size:.72rem;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">${icon} ${label}</div>`;
+    if (!rows || rows.length === 0) {
+      s += `<div style="font-size:.8rem;color:#9ca3af;padding:6px 10px;background:#f9fafb;border-radius:8px;">No entries found for this Tour ID.</div>`;
+    } else {
+      s += rows;
+    }
+    s += `</div>`;
+    return s;
+  }
+
+  // ── 1. Receipts ───────────────────────────────────────────────
+  let recTable = '';
+  if (d.receipts.length > 0) {
+    recTable = `<table style="width:100%;border-collapse:collapse;font-size:.77rem;">
+      <tr style="background:#d1fae5;">
+        <th style="padding:5px 7px;text-align:left;color:#065f46;font-weight:700;">Date</th>
+        <th style="padding:5px 7px;text-align:left;color:#065f46;font-weight:700;">Traveller</th>
+        <th style="padding:5px 7px;text-align:left;color:#065f46;font-weight:700;">Mode / Bank</th>
+        <th style="padding:5px 7px;text-align:right;color:#065f46;font-weight:700;">Amount</th>
+      </tr>`;
+    d.receipts.forEach(function(r) {
+      const modeBank = [r.paymentMode, r.bankName].filter(Boolean).join(' / ') || '—';
+      recTable += `<tr style="border-bottom:1px solid #f0fdf4;">
+        <td style="padding:5px 7px;color:#374151;">${r.date || '—'}</td>
+        <td style="padding:5px 7px;color:#111827;font-weight:500;">${r.name || '—'}${r.isGroup ? ' <span style="font-size:.68rem;background:#ede9fe;color:#5b21b6;border-radius:4px;padding:1px 5px;">Grp</span>' : ''}${r.receiptNo ? ' <span style="color:#9ca3af;font-size:.7rem;">#' + r.receiptNo + '</span>' : ''}</td>
+        <td style="padding:5px 7px;color:#6b7280;">${modeBank}</td>
+        <td style="padding:5px 7px;text-align:right;font-weight:600;color:#059669;">${fmt(r.amount)}</td>
+      </tr>`;
+      if (r.members && r.members.length > 0) {
+        r.members.forEach(function(m) {
+          recTable += `<tr style="border-bottom:1px solid #f0fdf4;background:#f8fffe;">
+            <td style="padding:3px 7px 3px 18px;color:#9ca3af;font-size:.72rem;">${m.date || ''}</td>
+            <td style="padding:3px 7px 3px 18px;color:#6b7280;font-size:.72rem;">└ ${m.name}</td>
+            <td style="padding:3px 7px;color:#9ca3af;font-size:.72rem;">${m.bank || '—'}</td>
+            <td style="padding:3px 7px;text-align:right;font-size:.72rem;color:#059669;">${fmt(m.amount)}</td>
+          </tr>`;
+        });
+      }
+    });
+    recTable += `<tr style="background:#ecfdf5;">
+      <td colspan="3" style="padding:6px 7px;text-align:right;font-weight:700;color:#065f46;font-size:.77rem;">TOTAL RECEIPTS</td>
+      <td style="padding:6px 7px;text-align:right;font-weight:800;color:#059669;font-size:.82rem;">${fmt(t.receipts)}</td>
+    </tr></table>`;
+  }
+  html += section('💰', `Receipts from Travellers (${d.receipts.length})`, '#065f46', '#d1fae5', recTable);
+
+  // ── 2. Direct Vendor Payments ─────────────────────────────────
+  let venTable = '';
+  if (d.vendorServices.length > 0) {
+    venTable = `<table style="width:100%;border-collapse:collapse;font-size:.77rem;">
+      <tr style="background:#fee2e2;">
+        <th style="padding:5px 7px;text-align:left;color:#991b1b;font-weight:700;">Date</th>
+        <th style="padding:5px 7px;text-align:left;color:#991b1b;font-weight:700;">Service</th>
+        <th style="padding:5px 7px;text-align:left;color:#991b1b;font-weight:700;">Vendor</th>
+        <th style="padding:5px 7px;text-align:right;color:#991b1b;font-weight:700;">Amount</th>
+      </tr>`;
+    d.vendorServices.forEach(function(s) {
+      venTable += `<tr style="border-bottom:1px solid #fff1f2;">
+        <td style="padding:5px 7px;color:#374151;">${s.date || '—'}</td>
+        <td style="padding:5px 7px;color:#6b7280;">${s.serviceType || '—'}</td>
+        <td style="padding:5px 7px;color:#111827;font-weight:500;">${s.vendorName || '—'}${s.txnRef ? '<br><span style="color:#9ca3af;font-size:.68rem;">Ref: ' + s.txnRef + '</span>' : ''}</td>
+        <td style="padding:5px 7px;text-align:right;font-weight:600;color:#dc2626;">${fmt(s.amount)}</td>
+      </tr>`;
+    });
+    venTable += `<tr style="background:#fff1f2;">
+      <td colspan="3" style="padding:6px 7px;text-align:right;font-weight:700;color:#991b1b;font-size:.77rem;">TOTAL DIRECT PAYMENTS</td>
+      <td style="padding:6px 7px;text-align:right;font-weight:800;color:#dc2626;font-size:.82rem;">${fmt(t.directPayments)}</td>
+    </tr></table>`;
+  }
+  html += section('🏪', `Direct Vendor Payments (${d.vendorServices.length})`, '#991b1b', '#fee2e2', venTable);
+
+  // ── 3. Float Utilisations ─────────────────────────────────────
+  let floatTable = '';
+  if (d.floatUtilisations.length > 0) {
+    floatTable = `<table style="width:100%;border-collapse:collapse;font-size:.77rem;">
+      <tr style="background:#fef3c7;">
+        <th style="padding:5px 7px;text-align:left;color:#92400e;font-weight:700;">Date</th>
+        <th style="padding:5px 7px;text-align:left;color:#92400e;font-weight:700;">Float A/c</th>
+        <th style="padding:5px 7px;text-align:left;color:#92400e;font-weight:700;">Service / Traveller</th>
+        <th style="padding:5px 7px;text-align:right;color:#92400e;font-weight:700;">Amount</th>
+      </tr>`;
+    d.floatUtilisations.forEach(function(f) {
+      const svcTraveller = [f.serviceType, f.travellerName].filter(Boolean).join(' · ') || '—';
+      floatTable += `<tr style="border-bottom:1px solid #fffbeb;">
+        <td style="padding:5px 7px;color:#374151;">${f.date || '—'}</td>
+        <td style="padding:5px 7px;color:#111827;font-weight:500;">${f.vendorName || '—'}</td>
+        <td style="padding:5px 7px;color:#6b7280;">${svcTraveller}${f.remarks ? '<br><span style="font-size:.68rem;color:#9ca3af;">' + f.remarks + '</span>' : ''}</td>
+        <td style="padding:5px 7px;text-align:right;font-weight:600;color:#d97706;">${fmt(f.amount)}</td>
+      </tr>`;
+    });
+    floatTable += `<tr style="background:#fef3c7;">
+      <td colspan="3" style="padding:6px 7px;text-align:right;font-weight:700;color:#92400e;font-size:.77rem;">TOTAL FLOAT UTILISATIONS</td>
+      <td style="padding:6px 7px;text-align:right;font-weight:800;color:#d97706;font-size:.82rem;">${fmt(t.floatUtilisations)}</td>
+    </tr></table>`;
+  }
+  html += section('🏦', `Float Utilisations — Air IQ / Arise / My Partner (${d.floatUtilisations.length})`, '#92400e', '#fef3c7', floatTable);
+
+  // ── Net summary footer ────────────────────────────────────────
+  html += `<div style="background:${bal ? '#ecfdf5' : '#fff1f2'};border:2px solid ${bal ? '#6ee7b7' : '#fca5a5'};border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+    <div>
+      <div style="font-size:.68rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.6px;">Net ${bal ? 'Profit' : 'Loss'} — ${d.tourId}</div>
+      <div style="font-size:.75rem;color:#6b7280;margin-top:2px;">Receipts ${fmt(t.receipts)} − Cost (Direct ${fmt(t.directPayments)} + Float ${fmt(t.floatUtilisations)})</div>
+    </div>
+    <div style="font-size:1.2rem;font-weight:800;color:${bal ? '#059669' : '#dc2626'};">${fmt(Math.abs(t.balance))} ${bal ? 'Profit ✅' : 'Loss ⚠️'}</div>
+  </div>`;
+
+  return html;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
 // DASHBOARD
 // ═══════════════════════════════════════════════════════════════
 let dashSortKey = 'net';
@@ -1750,6 +2023,34 @@ function storeVAData(data) {
   vaLiveFloatBalances  = data.floatBalances  || {};
   vaLivePendingEntries = data.pendingEntries || [];
   vaLiveCreditData     = data.creditData     || {};
+  updateFloatHeaderBadges();
+}
+
+// ── Update header float balance strip ────────────────────────────────
+function updateFloatHeaderBadges() {
+  const strip = document.getElementById('floatStrip');
+  if (!strip) return;
+  const mp  = vaLiveFloatBalances['MY PARTNER']           || {balance:0};
+  const ar  = vaLiveFloatBalances['ARISE TOUR AND TRAVELS'] || {balance:0};
+  const aiq = vaLiveCreditData['AIR IQ']                  || {outstanding:0};
+  function fmtL(n) { return n >= 100000 ? (n/100000).toFixed(1) + 'L' : n >= 1000 ? (n/1000).toFixed(0) + 'K' : '₹'+Math.round(n); }
+  const fb1 = document.getElementById('fbMyPartner');
+  const fb2 = document.getElementById('fbArise');
+  const fb3 = document.getElementById('fbAirIQ');
+  if (fb1) {
+    fb1.textContent = 'My Partner: ' + fmtL(mp.balance || 0);
+    fb1.className   = 'float-badge ' + (mp.balance > 50000 ? 'fb-green' : mp.balance > 0 ? 'fb-amber' : 'fb-red');
+  }
+  if (fb2) {
+    fb2.textContent = 'Arise: ' + fmtL(ar.balance || 0);
+    fb2.className   = 'float-badge ' + (ar.balance > 50000 ? 'fb-green' : ar.balance > 0 ? 'fb-amber' : 'fb-red');
+  }
+  if (fb3) {
+    const out = aiq.outstanding || 0;
+    fb3.textContent = 'Air IQ Due: ' + fmtL(out);
+    fb3.className   = 'float-badge ' + (out === 0 ? 'fb-green' : 'fb-red');
+  }
+  strip.style.display = 'block';
 }
 
 function fmt2(n) { return '₹' + (n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -1757,7 +2058,7 @@ function fmt2(n) { return '₹' + (n||0).toLocaleString('en-IN',{minimumFraction
 // ── Float balances display ────────────────────────────────────────────
 function renderFloatBalances() {
   const el = document.getElementById('floatBalancesDisplay');
-  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS','AIR IQ'];
+  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS'];
   if (!Object.keys(vaLiveFloatBalances).length) {
     el.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.82rem;">No float data yet. Add first replenishment below.</div>';
   }
@@ -1766,9 +2067,8 @@ function renderFloatBalances() {
     const bal = d.balance || 0;
     const cls = bal > 50000 ? 'healthy' : bal > 0 ? 'low' : 'empty';
     const balColor = bal > 50000 ? '#059669' : bal > 0 ? '#d97706' : '#dc2626';
-    const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '💰';
-    const labelMap = {'MY PARTNER':'My Partner (Prepaid Portal)','ARISE TOUR AND TRAVELS':'Arise Tour and Travels','AIR IQ':'Air IQ (Float Account)'};
-  const vLabel = labelMap[v] || v;
+    const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '❌';
+    const vLabel = v === 'MY PARTNER' ? 'My Partner (Prepaid Portal)' : 'Arise Tour and Travels';
     return '<div class="vendor-bal-card ' + cls + '">'
       + '<div><div class="vbc-name">' + icon + ' ' + vLabel + '</div>'
       + '<div class="vbc-sub">Deposited: ' + fmt2(d.replenished) + ' &nbsp;|&nbsp; Used: ' + fmt2(d.utilised) + '</div></div>'
@@ -1977,9 +2277,42 @@ document.addEventListener('click', function(e) {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// PIN GATE
+// ═══════════════════════════════════════════════════════════════
+const PIN_KEY     = 'ddPinVerified';    // sessionStorage key
+const CORRECT_PIN = '1969';             // change to firm's preferred PIN
+
+function initPinGate() {
+  try {
+    if (sessionStorage.getItem(PIN_KEY) === 'yes') return; // already verified this session
+  } catch(e) {}
+  document.getElementById('pinOverlay').classList.add('open');
+  setTimeout(() => { const p = document.getElementById('pinInput'); if(p) p.focus(); }, 200);
+}
+
+function verifyPin() {
+  const entered = (document.getElementById('pinInput').value || '').trim();
+  if (entered === CORRECT_PIN) {
+    try { sessionStorage.setItem(PIN_KEY, 'yes'); } catch(e) {}
+    document.getElementById('pinOverlay').classList.remove('open');
+    document.getElementById('pinErr').textContent = '';
+    document.getElementById('pinInput').value = '';
+  } else {
+    document.getElementById('pinErr').textContent = '❌ Incorrect PIN — please try again.';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+
+function checkPin(e) {
+  if (e.key === 'Enter') verifyPin();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
+  initPinGate();        // show PIN gate if not verified
   document.getElementById('entryDate').value = new Date().toISOString().split('T')[0];
   refreshReceipt();
   addService();         // default first service row
