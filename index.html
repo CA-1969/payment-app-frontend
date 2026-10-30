@@ -281,7 +281,7 @@
         <span class="sync-dot pulse" id="syncDot"></span>
         <span id="syncText">Loading sheet data…</span>
       </span>
-      <span class="hbadge" style="background:#f59e0b;color:#1c1917;border-color:#d97706;font-size:.68rem;">v19.0 · Built 24-Oct-2026 23:40</span>
+      <span class="hbadge" style="background:#f59e0b;color:#1c1917;border-color:#d97706;font-size:.68rem;">v20.0 · Built 30-Oct-2026 13:30</span>
       <span class="hbadge" style="font-size:.62rem;">M/s Anurag Maheshwari &amp; Co.</span>
     </div>
   </div>
@@ -292,6 +292,7 @@
     <span class="fb-label">Live balances →</span>
     <span class="float-badge fb-green" id="fbMyPartner">My Partner: —</span>
     <span class="float-badge fb-green" id="fbArise">Arise Travels: —</span>
+    <span class="float-badge fb-green" id="fbAirIQFloat">Air IQ Float: —</span>
     <span class="float-badge fb-amber" id="fbAirIQ">Air IQ Due: —</span>
   </div>
 </div>
@@ -2122,11 +2123,13 @@ function updateFloatHeaderBadges() {
   if (!strip) return;
   const mp  = vaLiveFloatBalances['MY PARTNER']           || {balance:0};
   const ar  = vaLiveFloatBalances['ARISE TOUR AND TRAVELS'] || {balance:0};
-  const aiq = vaLiveCreditData['AIR IQ']                  || {outstanding:0};
+  const aiq    = vaLiveCreditData['AIR IQ']                  || {outstanding:0};
+  const aiqFlt = vaLiveFloatBalances['AIR IQ']               || {balance:0};
   function fmtL(n) { return n >= 100000 ? (n/100000).toFixed(1) + 'L' : n >= 1000 ? (n/1000).toFixed(0) + 'K' : '₹'+Math.round(n); }
   const fb1 = document.getElementById('fbMyPartner');
   const fb2 = document.getElementById('fbArise');
   const fb3 = document.getElementById('fbAirIQ');
+  const fb4 = document.getElementById('fbAirIQFloat');
   if (fb1) {
     fb1.textContent = 'My Partner: ' + fmtL(mp.balance || 0);
     fb1.className   = 'float-badge ' + (mp.balance > 50000 ? 'fb-green' : mp.balance > 0 ? 'fb-amber' : 'fb-red');
@@ -2134,6 +2137,11 @@ function updateFloatHeaderBadges() {
   if (fb2) {
     fb2.textContent = 'Arise: ' + fmtL(ar.balance || 0);
     fb2.className   = 'float-badge ' + (ar.balance > 50000 ? 'fb-green' : ar.balance > 0 ? 'fb-amber' : 'fb-red');
+  }
+  if (fb4) {
+    const fbal = aiqFlt.balance || 0;
+    fb4.textContent = 'Air IQ Float: ' + fmtL(fbal);
+    fb4.className   = 'float-badge ' + (fbal > 50000 ? 'fb-green' : fbal > 0 ? 'fb-amber' : 'fb-red');
   }
   if (fb3) {
     const out = aiq.outstanding || 0;
@@ -2148,7 +2156,7 @@ function fmt2(n) { return '₹' + (n||0).toLocaleString('en-IN',{minimumFraction
 // ── Float balances display ────────────────────────────────────────────
 function renderFloatBalances() {
   const el = document.getElementById('floatBalancesDisplay');
-  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS'];
+  const vendors = ['MY PARTNER','ARISE TOUR AND TRAVELS','AIR IQ'];
   if (!Object.keys(vaLiveFloatBalances).length) {
     el.innerHTML = '<div style="text-align:center;padding:16px;color:#9ca3af;font-size:.82rem;">No float data yet. Add first replenishment below.</div>';
   }
@@ -2158,7 +2166,7 @@ function renderFloatBalances() {
     const cls = bal > 50000 ? 'healthy' : bal > 0 ? 'low' : 'empty';
     const balColor = bal > 50000 ? '#059669' : bal > 0 ? '#d97706' : '#dc2626';
     const icon = bal > 50000 ? '✅' : bal > 0 ? '⚠️' : '❌';
-    const vLabel = v === 'MY PARTNER' ? 'My Partner (Prepaid Portal)' : 'Arise Tour and Travels';
+    const vLabel = v === 'MY PARTNER' ? 'My Partner (Prepaid Portal)' : v === 'ARISE TOUR AND TRAVELS' ? 'Arise Tour and Travels' : 'Air IQ (Prepaid Float)';
     return '<div class="vendor-bal-card ' + cls + '">'
       + '<div><div class="vbc-name">' + icon + ' ' + vLabel + '</div>'
       + '<div class="vbc-sub">Deposited: ' + fmt2(d.replenished) + ' &nbsp;|&nbsp; Used: ' + fmt2(d.utilised) + '</div></div>'
